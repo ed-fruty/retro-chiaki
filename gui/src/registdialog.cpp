@@ -2,6 +2,7 @@
 
 #include <registdialog.h>
 #include <settings.h>
+#include <onscreenkeyboard.h>
 
 #include <QFormLayout>
 #include <QLineEdit>
@@ -65,17 +66,47 @@ RegistDialog::RegistDialog(Settings *settings, const QString &host, QWidget *par
 	form_layout->addRow(tr("Console:"), target_layout);
 
 	psn_online_id_edit = new QLineEdit(this);
-	form_layout->addRow(tr("PSN Online-ID (username, case-sensitive):"), psn_online_id_edit);
+	auto psn_online_id_row = new QHBoxLayout();
+	psn_online_id_row->addWidget(psn_online_id_edit);
+	auto psn_online_id_button = new QPushButton(tr("Enter..."), this);
+	psn_online_id_row->addWidget(psn_online_id_button);
+	form_layout->addRow(tr("PSN Online-ID (username, case-sensitive):"), psn_online_id_row);
 	psn_account_id_edit = new QLineEdit(this);
-	form_layout->addRow(tr("PSN Account-ID (base64):"), psn_account_id_edit);
+	psn_account_id_edit->setReadOnly(true);
+	auto psn_account_id_row = new QHBoxLayout();
+	psn_account_id_row->addWidget(psn_account_id_edit);
+	auto psn_account_id_button = new QPushButton(tr("Enter..."), this);
+	psn_account_id_row->addWidget(psn_account_id_button);
+	form_layout->addRow(tr("PSN Account-ID (base64):"), psn_account_id_row);
 
 	ps5_radio_button->setChecked(true);
 
 	UpdatePSNIDEdits();
 
 	pin_edit = new QLineEdit(this);
+	pin_edit->setReadOnly(true);
 	pin_edit->setValidator(new QRegularExpressionValidator(pin_re, pin_edit));
-	form_layout->addRow(tr("PIN:"), pin_edit);
+	auto pin_row = new QHBoxLayout();
+	pin_row->addWidget(pin_edit);
+	auto pin_button = new QPushButton(tr("Enter..."), this);
+	pin_row->addWidget(pin_button);
+	form_layout->addRow(tr("PIN:"), pin_row);
+
+	connect(psn_online_id_button, &QPushButton::clicked, this, [this]() {
+		QString text = psn_online_id_edit->text();
+		if(OnScreenKeyboard::GetOnlineId(text, this))
+			psn_online_id_edit->setText(text);
+	});
+	connect(psn_account_id_button, &QPushButton::clicked, this, [this]() {
+		QString text = psn_account_id_edit->text();
+		if(OnScreenKeyboard::GetBase64(text, this))
+			psn_account_id_edit->setText(text);
+	});
+	connect(pin_button, &QPushButton::clicked, this, [this]() {
+		QString text = pin_edit->text();
+		if(OnScreenKeyboard::GetNumber(text, PIN_LENGTH, this))
+			pin_edit->setText(text);
+	});
 
 	button_box = new QDialogButtonBox(QDialogButtonBox::Cancel, this);
 	register_button = button_box->addButton(tr("Register"), QDialogButtonBox::AcceptRole);
@@ -85,8 +116,10 @@ RegistDialog::RegistDialog(Settings *settings, const QString &host, QWidget *par
 
 	connect(host_edit, &QLineEdit::textChanged, this, &RegistDialog::ValidateInput);
 	connect(psn_online_id_edit, &QLineEdit::textChanged, this, &RegistDialog::ValidateInput);
+	connect(psn_account_id_edit, &QLineEdit::textChanged, this, &RegistDialog::ValidateInput);
 	connect(pin_edit, &QLineEdit::textChanged, this, &RegistDialog::ValidateInput);
 	ValidateInput();
+	resize(700, 460);
 }
 
 RegistDialog::~RegistDialog()

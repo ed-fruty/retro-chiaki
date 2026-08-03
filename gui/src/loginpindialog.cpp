@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: LicenseRef-AGPL-3.0-only-OpenSSL
 
 #include <loginpindialog.h>
+#include <onscreenkeyboard.h>
 
 #include <QVBoxLayout>
 #include <QLineEdit>
@@ -9,6 +10,7 @@
 #include <QRegularExpression>
 #include <QRegularExpressionValidator>
 #include <QLabel>
+#include <QTimer>
 
 #define PIN_LENGTH 4
 
@@ -40,6 +42,12 @@ LoginPINDialog::LoginPINDialog(bool incorrect, QWidget *parent) : QDialog(parent
 	connect(button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
 	UpdateButtons();
+
+	QTimer::singleShot(0, this, [this]() {
+		QString text = pin_edit->text();
+		if(OnScreenKeyboard::GetNumber(text, PIN_LENGTH, this))
+			pin_edit->setText(text);
+	});
 }
 
 void LoginPINDialog::UpdateButtons()

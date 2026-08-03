@@ -23,6 +23,7 @@ class SettingsDialog : public QDialog
 		QCheckBox *dualsense_check_box;
 
 		QComboBox *resolution_combo_box;
+		QComboBox *transform_mode_combo_box;
 		QComboBox *fps_combo_box;
 		QLineEdit *bitrate_edit;
 		QComboBox *codec_combo_box;
@@ -42,6 +43,7 @@ class SettingsDialog : public QDialog
 		void DisconnectActionSelected();
 
 		void ResolutionSelected();
+		void TransformModeSelected();
 		void FPSSelected();
 		void BitrateEdited();
 		void CodecSelected();

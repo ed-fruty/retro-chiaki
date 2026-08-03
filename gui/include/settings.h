@@ -6,6 +6,7 @@
 #include <chiaki/session.h>
 
 #include "host.h"
+#include "transformmode.h"
 
 #include <QSettings>
 #include <QAudioDeviceInfo>
@@ -80,6 +81,9 @@ class Settings : public QObject
 
 		ChiakiCodec GetCodec() const;
 		void SetCodec(ChiakiCodec codec);
+
+		TransformMode GetTransformMode() const;
+		void SetTransformMode(TransformMode mode);
 
 		Decoder GetDecoder() const;
 		void SetDecoder(Decoder decoder);

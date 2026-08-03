@@ -18,6 +18,7 @@
 #include <QMap>
 #include <QCheckBox>
 #include <QLineEdit>
+#include <QScrollArea>
 #include <QtConcurrent>
 #include <QFutureWatcher>
 
@@ -45,14 +46,24 @@ SettingsDialog::SettingsDialog(Settings *settings, QWidget *parent) : QDialog(pa
 	auto root_layout = new QVBoxLayout(this);
 	setLayout(root_layout);
 
-	auto horizontal_layout = new QHBoxLayout();
-	root_layout->addLayout(horizontal_layout);
+	// The original desktop layout puts two tall columns next to each other.  Its
+	// minimum size is larger than small handheld screens, and eglfs clips the
+	// parts outside the framebuffer.  Keep the dialog inside the screen and make
+	// all settings reachable by scrolling instead.
+	auto scroll_area = new QScrollArea(this);
+	scroll_area->setWidgetResizable(true);
+	scroll_area->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	root_layout->addWidget(scroll_area);
+
+	auto scroll_content = new QWidget(scroll_area);
+	auto content_layout = new QVBoxLayout(scroll_content);
+	scroll_area->setWidget(scroll_content);
 
 	auto left_layout = new QVBoxLayout();
-	horizontal_layout->addLayout(left_layout);
+	content_layout->addLayout(left_layout);
 
 	auto right_layout = new QVBoxLayout();
-	horizontal_layout->addLayout(right_layout);
+	content_layout->addLayout(right_layout);
 
 	// General
 
@@ -155,6 +166,14 @@ SettingsDialog::SettingsDialog(Settings *settings, QWidget *parent) : QDialog(pa
 	}
 	connect(resolution_combo_box, SIGNAL(currentIndexChanged(int)), this, SLOT(ResolutionSelected()));
 	stream_settings_layout->addRow(tr("Resolution:"), resolution_combo_box);
+
+	transform_mode_combo_box = new QComboBox(this);
+	transform_mode_combo_box->addItem(tr("Keep 16:9"), (int)TransformMode::Fit);
+	transform_mode_combo_box->addItem(tr("Stretch to Screen"), (int)TransformMode::Stretch);
+	transform_mode_combo_box->setCurrentIndex(
+		transform_mode_combo_box->findData((int)settings->GetTransformMode()));
+	connect(transform_mode_combo_box, SIGNAL(currentIndexChanged(int)), this, SLOT(TransformModeSelected()));
+	stream_settings_layout->addRow(tr("Display Mode:"), transform_mode_combo_box);
 
 	fps_combo_box = new QComboBox(this);
 	static const QList<QPair<ChiakiVideoFPSPreset, QString>> fps_strings = {
@@ -309,12 +328,23 @@ SettingsDialog::SettingsDialog(Settings *settings, QWidget *parent) : QDialog(pa
 
 	connect(settings, &Settings::RegisteredHostsUpdated, this, &SettingsDialog::UpdateRegisteredHosts);
 	connect(registered_hosts_list_widget, &QListWidget::itemSelectionChanged, this, &SettingsDialog::UpdateRegisteredHostsButtons);
+
+	// QScrollArea intentionally does not propagate the full contents' size hint.
+	// Without an initial size Qt creates a tiny dialog on eglfs, which clips the
+	// form horizontally and leaves the Close button over the content.  This size
+	// fits the RG34XXSP's 720x480 framebuffer with a small outer margin.
+	resize(700, 460);
 }
 
 void SettingsDialog::ResolutionSelected()
 {
 	settings->SetResolution((ChiakiVideoResolutionPreset)resolution_combo_box->currentData().toInt());
 	UpdateBitratePlaceholder();
+}
+
+void SettingsDialog::TransformModeSelected()
+{
+	settings->SetTransformMode((TransformMode)transform_mode_combo_box->currentData().toInt());
 }
 
 void SettingsDialog::DisconnectActionSelected()

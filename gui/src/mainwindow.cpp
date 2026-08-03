@@ -261,7 +261,7 @@ void MainWindow::ServerItemWidgetTriggered()
 				server.registered_host.GetRPRegistKey(),
 				server.registered_host.GetRPKey(),
 				false,
-				TransformMode::Fit);
+				settings->GetTransformMode());
 		new StreamWindow(info);
 	}
 	else

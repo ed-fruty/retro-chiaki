@@ -153,6 +153,22 @@ void Settings::SetCodec(ChiakiCodec codec)
 	settings.setValue("settings/codec", codecs[codec]);
 }
 
+static const QMap<TransformMode, QString> transform_mode_values = {
+	{ TransformMode::Fit, "fit" },
+	{ TransformMode::Stretch, "stretch" }
+};
+
+TransformMode Settings::GetTransformMode() const
+{
+	auto value = settings.value("settings/transform_mode", "fit").toString();
+	return transform_mode_values.key(value, TransformMode::Fit);
+}
+
+void Settings::SetTransformMode(TransformMode mode)
+{
+	settings.setValue("settings/transform_mode", transform_mode_values.value(mode, "fit"));
+}
+
 unsigned int Settings::GetAudioBufferSizeDefault() const
 {
 	return 9600;
