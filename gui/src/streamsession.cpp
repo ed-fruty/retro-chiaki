@@ -66,6 +66,8 @@ StreamSession::StreamSession(const StreamSessionConnectInfo &connect_info, QObje
 #endif
 	audio_output(nullptr),
 	audio_io(nullptr),
+	sdl_audio_output(0),
+	audio_channels(0),
 	haptics_output(0),
 	haptics_resampler_buf(nullptr)
 {
@@ -231,6 +233,11 @@ StreamSession::~StreamSession()
 		chiaki_ffmpeg_decoder_fini(ffmpeg_decoder);
 		delete ffmpeg_decoder;
 	}
+	if(sdl_audio_output > 0)
+	{
+		SDL_CloseAudioDevice(sdl_audio_output);
+		sdl_audio_output = 0;
+	}
 	if(haptics_output > 0)
 	{
 		SDL_CloseAudioDevice(haptics_output);
@@ -394,6 +401,7 @@ void StreamSession::SendFeedbackState()
 	}
 
 	chiaki_controller_state_or(&state, &state, &keyboard_state);
+
 	chiaki_session_set_controller_state(&session, &state);
 }
 
@@ -402,30 +410,42 @@ void StreamSession::InitAudio(unsigned int channels, unsigned int rate)
 	delete audio_output;
 	audio_output = nullptr;
 	audio_io = nullptr;
-
-	QAudioFormat audio_format;
-	audio_format.setSampleRate(rate);
-	audio_format.setChannelCount(channels);
-	audio_format.setSampleSize(16);
-	audio_format.setCodec("audio/pcm");
-	audio_format.setSampleType(QAudioFormat::SignedInt);
-
-	QAudioDeviceInfo audio_device_info = audio_out_device_info;
-	if(!audio_device_info.isFormatSupported(audio_format))
+	if(sdl_audio_output > 0)
 	{
-		CHIAKI_LOGE(log.GetChiakiLog(), "Audio Format with %u channels @ %u Hz not supported by Audio Device %s",
-					channels, rate,
-					audio_device_info.deviceName().toLocal8Bit().constData());
+		SDL_CloseAudioDevice(sdl_audio_output);
+		sdl_audio_output = 0;
+	}
+
+#ifdef Q_OS_LINUX
+	// The SDL shipped with muOS has ALSA support but no native PipeWire backend.
+	// Its ALSA default device is a plug that routes into PipeWire.
+	SDL_SetHint("SDL_AUDIODRIVER", "alsa");
+#endif
+	if(SDL_InitSubSystem(SDL_INIT_AUDIO) < 0)
+	{
+		CHIAKI_LOGE(log.GetChiakiLog(), "Could not initialize SDL stream audio: %s", SDL_GetError());
 		return;
 	}
 
-	audio_output = new QAudioOutput(audio_device_info, audio_format, this);
-	audio_output->setBufferSize(audio_buffer_size);
-	audio_io = audio_output->start();
+	SDL_AudioSpec want, have;
+	SDL_zero(want);
+	want.freq = static_cast<int>(rate);
+	want.format = AUDIO_S16LSB;
+	want.channels = static_cast<Uint8>(channels);
+	want.samples = 480; // 10 ms at the PlayStation's usual 48 kHz rate
+	want.callback = nullptr;
 
-	CHIAKI_LOGI(log.GetChiakiLog(), "Audio Device %s opened with %u channels @ %u Hz, buffer size %u",
-				audio_device_info.deviceName().toLocal8Bit().constData(),
-				channels, rate, audio_output->bufferSize());
+	sdl_audio_output = SDL_OpenAudioDevice(nullptr, 0, &want, &have, 0);
+	if(sdl_audio_output == 0)
+	{
+		CHIAKI_LOGE(log.GetChiakiLog(), "Could not open SDL stream audio device: %s", SDL_GetError());
+		return;
+	}
+	audio_channels = channels;
+	SDL_PauseAudioDevice(sdl_audio_output, 0);
+
+	CHIAKI_LOGI(log.GetChiakiLog(), "SDL stream audio opened with %u channels @ %u Hz, buffer size %u (driver=%s)",
+				channels, rate, have.size, SDL_GetCurrentAudioDriver());
 }
 
 void StreamSession::InitHaptics()
@@ -433,8 +453,7 @@ void StreamSession::InitHaptics()
 	haptics_output = 0;
 	haptics_resampler_buf = nullptr;
 #ifdef Q_OS_LINUX
-	// Haptics work most reliably with Pipewire, so try to use that if available
-	SDL_SetHint("SDL_AUDIODRIVER", "pipewire");
+	SDL_SetHint("SDL_AUDIODRIVER", "alsa");
 #endif
 
 	if(SDL_Init(SDL_INIT_AUDIO) < 0)
@@ -442,16 +461,6 @@ void StreamSession::InitHaptics()
 		CHIAKI_LOGE(log.GetChiakiLog(), "Could not initialize SDL Audio for haptics output: %s", SDL_GetError());
 		return;
 	}
-
-#ifdef Q_OS_LINUX
-	if(!strstr(SDL_GetCurrentAudioDriver(), "pipewire"))
-	{
-		CHIAKI_LOGW(
-			log.GetChiakiLog(),
-			"Haptics output is not using Pipewire, this may not work reliably. (was: '%s')",
-			SDL_GetCurrentAudioDriver());
-	}
-#endif
 
 	SDL_AudioCVT cvt;
 	SDL_BuildAudioCVT(&cvt, AUDIO_S16LSB, 4, 3000, AUDIO_S16LSB, 4, 48000);
@@ -506,9 +515,14 @@ void StreamSession::ConnectHaptics()
 
 void StreamSession::PushAudioFrame(int16_t *buf, size_t samples_count)
 {
-	if(!audio_io)
+	if(sdl_audio_output == 0)
 		return;
-	audio_io->write((const char *)buf, static_cast<qint64>(samples_count * 2 * 2));
+	const Uint32 frame_size = audio_channels * sizeof(int16_t);
+	const Uint32 bytes = static_cast<Uint32>(samples_count * frame_size);
+	if(SDL_GetQueuedAudioSize(sdl_audio_output) > audio_buffer_size * 4)
+		SDL_ClearQueuedAudio(sdl_audio_output);
+	if(SDL_QueueAudio(sdl_audio_output, buf, bytes) < 0)
+		CHIAKI_LOGE(log.GetChiakiLog(), "Could not queue SDL stream audio: %s", SDL_GetError());
 }
 
 void StreamSession::PushHapticsFrame(uint8_t *buf, size_t buf_size)
