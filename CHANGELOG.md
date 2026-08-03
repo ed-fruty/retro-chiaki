@@ -1,9 +1,8 @@
 # Changelog
 
-## Unreleased
+## v0.2.0
 
-- Added original Retro Chiaki artwork: a 320×240 muOS/PortMaster preview, full-size application artwork and a simplified 26×26 Applications glyph.
-- Added an optional native muOS Applications shortcut with custom artwork.
+- Added original Retro Chiaki artwork and a 320×240 muOS/PortMaster preview.
 - Documented bundled Qt components, system library expectations and the remaining PortMaster/gptokeyb dependency.
 - Expanded project positioning to compatible Allwinner H700 handhelds while keeping RG34XXSP with muOS as the only verified configuration.
 - Added runtime framebuffer detection for a single 720×480/640×480 ARM64 build.

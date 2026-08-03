@@ -71,19 +71,14 @@ These are also the defaults for a fresh Retro Chiaki configuration. Existing Chi
 
 ## Installation
 
-1. Download the latest `retro-chiaki-…-portmaster-muos-rg34xxsp-720x480.zip` from [Releases](https://github.com/ed-fruty/retro-chiaki/releases).
-2. Extract the archive to the root of the SD card containing your muOS ROMs.
+1. Download `retro-chiaki-v0.2.0-portmaster-muos-h700.zip` from [Releases](https://github.com/ed-fruty/retro-chiaki/releases/latest).
+2. Extract the archive to the root of the SD card that contains your muOS `ROMS` and `ports` directories. Do not extract it inside either directory.
 3. Confirm that these paths exist:
-   - `/mnt/mmc/ports/chiaki/chiaki`
-   - `/mnt/mmc/ROMS/Ports/Chiaki.sh`
+   - `ports/chiaki/chiaki`
+   - `ports/chiaki/chiaki.gptk`
+   - `ROMS/Ports/Chiaki.sh`
 4. Refresh Ports or reboot the handheld, then launch **Chiaki** from Ports.
 5. Add/register your console and start streaming.
-
-### Optional muOS Applications shortcut
-
-After installing the PortMaster package, you can also add **Retro Chiaki** to the native muOS **Applications** section. Extract the optional `retro-chiaki-muos-application-launcher-….zip` archive to the root of the SD card that contains the `MUOS` directory.
-
-The shortcut is intentionally small: it finds and starts the installed PortMaster port from the active ROM storage. It does not duplicate Chiaki or its libraries, and it shows an installation message if the port is missing. PortMaster remains required for this optional shortcut.
 
 See [the detailed installation and setup guide](docs/INSTALL.md) for SD2 setups, registration, resolution changes and troubleshooting.
 
@@ -91,7 +86,13 @@ See [the detailed installation and setup guide](docs/INSTALL.md) for SD2 setups,
 
 No separately downloadable PortMaster runtime is required. The release package already bundles Qt 5, the EGLFS platform plugin, supporting Qt plugins, XKB data, the Mali EGL compatibility shim and the additional libraries needed by that Qt build.
 
-Retro Chiaki uses the compatible SDL2, FFmpeg, OpenSSL, Opus, evdev/udev and audio libraries supplied by the tested muOS firmware. PortMaster currently supplies `gptokeyb` plus its device and exit-hotkey integration; this is why both the normal Ports entry and the optional Applications shortcut require PortMaster to be installed. A future fully standalone muOS application would bundle or replace that remaining component.
+Retro Chiaki uses the compatible SDL2, FFmpeg, OpenSSL, Opus, evdev/udev and audio libraries supplied by the tested muOS firmware. PortMaster currently supplies `gptokeyb` plus its device and exit-hotkey integration, so PortMaster must be installed before launching Retro Chiaki.
+
+## Roadmap
+
+- A separate native muOS Application package is planned. The launcher prototype and artwork are already kept in the repository, but no Application download is included in v0.2.0.
+- KNULLI packaging and testing are planned; current releases target muOS.
+- Reports from additional 720×480 and 640×480 H700 devices will be used to expand the verified compatibility list.
 
 ## Feedback
 

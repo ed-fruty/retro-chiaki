@@ -2,16 +2,20 @@
 
 ## Install the release
 
-Extract the release ZIP to the root of the SD card that contains the `ROMS` and `ports` directories. The archive already contains the correct directory layout.
+Download `retro-chiaki-v0.2.0-portmaster-muos-h700.zip` and extract it to the root of the SD card that contains the `ROMS` and `ports` directories. Do not extract it inside `ROMS`, `ROMS/Ports` or `ports`; the archive already contains the complete directory layout.
 
-On a standard single-card muOS setup the files resolve to:
+After extraction, verify these relative paths on that card:
 
 ```text
-/mnt/mmc/ROMS/Ports/Chiaki.sh
-/mnt/mmc/ports/chiaki/
+ROMS/Ports/Chiaki.sh
+ports/chiaki/chiaki
+ports/chiaki/chiaki-cli
+ports/chiaki/chiaki.gptk
+ports/chiaki/libs/
+ports/chiaki/xkb/
 ```
 
-If Ports are stored on SD2, copy the two archive directories to the equivalent ROM and port paths used by that card. Make sure `Chiaki.sh`, `chiaki`, and `chiaki-cli` remain executable.
+For a standard single-card setup this is normally `/mnt/mmc`; if your ROM storage is on SD2, extract the archive to the root of that card instead. Keep `Chiaki.sh`, `chiaki`, and `chiaki-cli` executable. PortMaster must already be installed because the launcher uses its controller helper and device integration.
 
 ## Register a PS4 or PS5
 
@@ -34,24 +38,15 @@ Recommended H700 stream settings are **540p**, **30 FPS**, and **H.264**. In **S
 
 This package is designed for compatible Allwinner H700 handhelds and detects 720×480 or 640×480 framebuffer geometry at runtime. It has currently been tested only on the Anbernic RG34XXSP (720×480) with muOS 2601 Jacaranda. Other H700 models may use different controller, audio, GPU or firmware integration and should be treated as unverified until reported by users.
 
-## Optional Applications entry
+## Planned Applications package
 
-Install the PortMaster package first. Then extract the optional `retro-chiaki-muos-application-launcher-….zip` to the root of the card containing the `MUOS` directory. This adds:
-
-```text
-MUOS/application/Retro Chiaki/
-├── mux_launch.sh
-├── mux_lang.ini
-└── glyph/retro_chiaki.png
-```
-
-Retro Chiaki will then appear in the native muOS **Applications** section with its own icon. This entry is a shortcut to the PortMaster installation rather than a second copy of the program. It uses the active ROM storage reported by muOS, so SD1 and SD2 configurations do not need hardcoded paths.
+A separate native muOS Applications package is planned, but is not distributed with v0.2.0. For this release, start Retro Chiaki from **Ports → Chiaki**. Do not expect a `MUOS/application/Retro Chiaki` directory in the v0.2.0 archive.
 
 ## PortMaster and system dependencies
 
 You do not need to install a PortMaster runtime such as `mono`, `love` or `weston`. Retro Chiaki ships its own Qt 5 libraries, Qt EGLFS and image plugins, XKB data and Mali EGL shim inside `ports/chiaki/`.
 
-The tested muOS firmware provides SDL2, FFmpeg, OpenSSL, Opus, evdev/udev and the audio stack. PortMaster itself provides `gptokeyb`, controller discovery and the usual exit-hotkey lifecycle used by the launcher. Therefore removing PortMaster currently breaks both launch entries even though Qt itself is bundled with Retro Chiaki.
+The tested muOS firmware provides SDL2, FFmpeg, OpenSSL, Opus, evdev/udev and the audio stack. PortMaster itself provides `gptokeyb`, controller discovery and the usual exit-hotkey lifecycle used by the launcher. Therefore removing PortMaster currently prevents Retro Chiaki from launching even though Qt itself is bundled with the package.
 
 ## Troubleshooting
 
