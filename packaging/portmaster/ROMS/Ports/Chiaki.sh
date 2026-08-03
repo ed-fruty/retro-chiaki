@@ -31,18 +31,40 @@ export XKB_CONFIG_ROOT="$GAMEDIR/xkb"
 export QT_XKB_CONFIG_ROOT="$GAMEDIR/xkb"
 export QT_QPA_PLATFORM=eglfs
 export QT_QPA_EGLFS_HIDECURSOR=0
-export QT_QPA_EGLFS_WIDTH=720
-export QT_QPA_EGLFS_HEIGHT=480
+
+# Detect the visible framebuffer size at runtime. virtual_size cannot be used
+# for height because fbdev commonly reports two stacked buffers (for example
+# 720x960 for a 720x480 panel).
+SCREEN_WIDTH=""
+SCREEN_HEIGHT=""
+if [ -r /sys/class/graphics/fb0/modes ]; then
+  SCREEN_MODE=$(head -n 1 /sys/class/graphics/fb0/modes)
+  if [[ "$SCREEN_MODE" =~ ([0-9]+)x([0-9]+) ]]; then
+    SCREEN_WIDTH="${BASH_REMATCH[1]}"
+    SCREEN_HEIGHT="${BASH_REMATCH[2]}"
+  fi
+fi
+if { [ -z "$SCREEN_WIDTH" ] || [ -z "$SCREEN_HEIGHT" ]; } && command -v fbset >/dev/null 2>&1; then
+  read -r SCREEN_WIDTH SCREEN_HEIGHT < <(fbset -s 2>/dev/null | awk '/geometry/ { print $2, $3; exit }')
+fi
+SCREEN_WIDTH=${SCREEN_WIDTH:-640}
+SCREEN_HEIGHT=${SCREEN_HEIGHT:-480}
+
+export QT_QPA_EGLFS_WIDTH="$SCREEN_WIDTH"
+export QT_QPA_EGLFS_HEIGHT="$SCREEN_HEIGHT"
 export QT_QPA_EGLFS_DEPTH=16
 export QT_OPENGL=es2
 export QT_SCALE_FACTOR=1
 export QT_AUTO_SCREEN_SCALE_FACTOR=0
 export QT_QPA_GENERIC_PLUGINS=evdevkeyboard,evdevmouse
 export QT_ENABLE_HIGHDPI_SCALING=0
-export QT_QPA_EGLFS_PHYSICAL_WIDTH=190
-export QT_QPA_EGLFS_PHYSICAL_HEIGHT=127
-export MALI_WINDOW_WIDTH=720
-export MALI_WINDOW_HEIGHT=480
+# Describe the panel at a consistent 96 DPI so Qt point-sized text remains the
+# same physical size across 720x480 and 640x480 displays.
+export QT_QPA_EGLFS_PHYSICAL_WIDTH=$((SCREEN_WIDTH * 254 / 960))
+export QT_QPA_EGLFS_PHYSICAL_HEIGHT=$((SCREEN_HEIGHT * 254 / 960))
+export MALI_WINDOW_WIDTH="$SCREEN_WIDTH"
+export MALI_WINDOW_HEIGHT="$SCREEN_HEIGHT"
+echo "Detected display: ${SCREEN_WIDTH}x${SCREEN_HEIGHT}"
 export SDL_AUDIODRIVER=alsa
 
 # muOS RG34XXSP controller mapping.  The GUID is not present in PortMaster's

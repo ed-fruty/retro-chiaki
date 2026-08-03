@@ -3,6 +3,7 @@
 #include <registdialog.h>
 #include <settings.h>
 #include <onscreenkeyboard.h>
+#include <screengeometry.h>
 
 #include <QFormLayout>
 #include <QLineEdit>
@@ -119,7 +120,7 @@ RegistDialog::RegistDialog(Settings *settings, const QString &host, QWidget *par
 	connect(psn_account_id_edit, &QLineEdit::textChanged, this, &RegistDialog::ValidateInput);
 	connect(pin_edit, &QLineEdit::textChanged, this, &RegistDialog::ValidateInput);
 	ValidateInput();
-	resize(700, 460);
+	resize(ChiakiWindowSizeForScreen(QSize(700, 460)));
 }
 
 RegistDialog::~RegistDialog()

@@ -15,14 +15,16 @@ The current release is built and tested specifically for:
 - 720×480 (3:2) display
 - muOS 2601 Jacaranda
 
-This build is **not intended for 640×480 devices**. Those devices need a separate build and testing pass; a dedicated release may be added later. Do not assume that sharing the H700 SoC is sufficient for compatibility.
+Retro Chiaki now detects the framebuffer resolution when it starts and constrains its interface and stream window to the actual display. The same ARM64 build is designed to support both **720×480** and **640×480** screens; `Original` preserves the stream aspect ratio and `Stretch to Screen` fills the detected panel.
+
+**640×480 status:** the adaptive layout is implemented, but has not yet been verified on real 640×480 hardware. The compatibility guarantee currently remains limited to the RG34XXSP configuration above. Do not assume that sharing the H700 SoC is sufficient for compatibility; please report the device model, firmware and results in [Issues](https://github.com/ed-fruty/retro-chiaki/issues).
 
 **KNULLI status:** KNULLI support has not been tested yet and is not included in the current compatibility guarantee. A dedicated KNULLI build may be added later. If you try Retro Chiaki on KNULLI, please leave a report with the device and firmware version in [Issues](https://github.com/ed-fruty/retro-chiaki/issues).
 
 ## What differs from upstream Chiaki
 
 - eglfs/Mali framebuffer support through a bundled EGL compatibility shim.
-- UI resized and made scrollable for a 720×480 screen.
+- Runtime display detection with a scrollable UI constrained to 720×480 or 640×480 screens.
 - On-screen keyboard for PSN Account ID and registration PIN entry.
 - Working OpenGL ES shaders and video rendering on the H700 Mali stack.
 - `Original` and `Stretch to Screen` display modes.

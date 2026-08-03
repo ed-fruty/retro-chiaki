@@ -5,6 +5,7 @@
 #include <settingskeycapturedialog.h>
 #include <registdialog.h>
 #include <sessionlog.h>
+#include <screengeometry.h>
 
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -330,10 +331,8 @@ SettingsDialog::SettingsDialog(Settings *settings, QWidget *parent) : QDialog(pa
 	connect(registered_hosts_list_widget, &QListWidget::itemSelectionChanged, this, &SettingsDialog::UpdateRegisteredHostsButtons);
 
 	// QScrollArea intentionally does not propagate the full contents' size hint.
-	// Without an initial size Qt creates a tiny dialog on eglfs, which clips the
-	// form horizontally and leaves the Close button over the content.  This size
-	// fits the RG34XXSP's 720x480 framebuffer with a small outer margin.
-	resize(700, 460);
+	// Give it a useful initial size while constraining it to the actual display.
+	resize(ChiakiWindowSizeForScreen(QSize(700, 460)));
 }
 
 void SettingsDialog::ResolutionSelected()

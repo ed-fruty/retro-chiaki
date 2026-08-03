@@ -133,7 +133,7 @@ void StreamWindow::Init()
 
 	// eglfs has no window manager to scale or constrain a top-level window.
 	// A stream window created at the source resolution (for example 960x540)
-	// is therefore clipped by a 720x480 framebuffer.  Fullscreen state alone is
+	// is therefore clipped by a smaller framebuffer. Fullscreen state alone is
 	// not sufficient on all eglfs integrations, so pin both Qt widgets to the
 	// physical screen geometry and use a frameless top-level window.
 	if(QGuiApplication::platformName() == "eglfs")
@@ -148,7 +148,7 @@ void StreamWindow::Init()
 			av_widget->setCursor(Qt::BlankCursor);
 
 		QScreen *screen = QGuiApplication::primaryScreen();
-		QSize screen_size = screen ? screen->geometry().size() : QSize(720, 480);
+		QSize screen_size = screen ? screen->geometry().size() : QSize(640, 480);
 		CHIAKI_LOGI(session->GetChiakiLog(), "EGLFS stream geometry: screen=%dx%d source=%dx%d",
 			screen_size.width(), screen_size.height(),
 			connect_info.video_profile.width, connect_info.video_profile.height);

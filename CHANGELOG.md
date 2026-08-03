@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Added runtime framebuffer detection for a single 720×480/640×480 ARM64 build.
+- Constrained the main window, settings, registration and on-screen keyboard to the detected display size.
+- Made EGLFS, Mali rendering and stream geometry use the detected display instead of fixed 720×480 values.
+
 ## v0.1.1
 
 - Added clear PS4, PS4 Pro, PS5, PS5 Digital Edition and PS5 Pro Remote Play positioning.

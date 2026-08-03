@@ -9,6 +9,7 @@
 #include <streamsession.h>
 #include <streamwindow.h>
 #include <manualhostdialog.h>
+#include <screengeometry.h>
 
 #include <QTableWidget>
 #include <QVBoxLayout>
@@ -171,7 +172,7 @@ MainWindow::MainWindow(Settings *settings, QWidget *parent)
 	scroll_content_layout->addStretch(0);
 	grid_widget->setContentsMargins(0, 0, 0, 0);
 
-	resize(800, 600);
+	resize(ChiakiWindowSizeForScreen(QSize(800, 600)));
 
 	connect(&discovery_manager, &DiscoveryManager::HostsUpdated, this, &MainWindow::UpdateDisplayServers);
 	connect(settings, &Settings::RegisteredHostsUpdated, this, &MainWindow::UpdateDisplayServers);

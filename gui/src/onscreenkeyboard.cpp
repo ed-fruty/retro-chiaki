@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: LicenseRef-AGPL-3.0-only-OpenSSL
 
 #include <onscreenkeyboard.h>
+#include <screengeometry.h>
 
 #include <QDialogButtonBox>
 #include <QGridLayout>
@@ -53,7 +54,7 @@ OnScreenKeyboard::OnScreenKeyboard(const QString &title, const QString &text,
 	connect(button_box, &QDialogButtonBox::accepted, this, &QDialog::accept);
 	connect(button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
-	resize(700, 460);
+	resize(ChiakiWindowSizeForScreen(QSize(700, 460)));
 	if(first_button)
 		first_button->setFocus();
 }

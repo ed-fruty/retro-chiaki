@@ -58,6 +58,7 @@ add_executable(chiaki WIN32
 		src/controllermanager.cpp
 		include/loginpindialog.h
 		src/loginpindialog.cpp
+		include/screengeometry.h
 		include/onscreenkeyboard.h
 		src/onscreenkeyboard.cpp)
 target_include_directories(chiaki PRIVATE include)
