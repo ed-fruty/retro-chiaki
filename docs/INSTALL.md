@@ -25,14 +25,14 @@ The upstream helper [`scripts/psn-account-id.py`](../scripts/psn-account-id.py) 
 
 ## Display mode
 
-Recommended RG34XXSP stream settings are **540p**, **30 FPS**, and **H.264**. In **Settings → Stream Settings → Display Mode**, choose:
+Recommended H700 stream settings are **540p**, **30 FPS**, and **H.264**. In **Settings → Stream Settings → Display Mode**, choose:
 
 - **Original** for correct 16:9 proportions with letterboxing on the 3:2 display.
-- **Stretch to Screen** to use the complete 720×480 panel.
+- **Stretch to Screen** to use the complete detected panel.
 
 ## Other devices and resolutions
 
-This package is an RG34XXSP 720×480 build. It is not a generic H700 package, and editing four resolution environment variables is not considered sufficient for a supported installation. Devices with 640×480 displays will receive a separately built and tested package later.
+This package is designed for compatible Allwinner H700 handhelds and detects 720×480 or 640×480 framebuffer geometry at runtime. It has currently been tested only on the Anbernic RG34XXSP (720×480) with muOS 2601 Jacaranda. Other H700 models may use different controller, audio, GPU or firmware integration and should be treated as unverified until reported by users.
 
 ## Troubleshooting
 

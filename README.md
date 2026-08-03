@@ -1,23 +1,28 @@
-# Retro Chiaki — PS4 / PS5 Remote Play for RG34XXSP
+# Retro Chiaki — PS4 / PS5 Remote Play for H700 Handhelds
 
-Retro Chiaki is a PlayStation Remote Play client for **PS4, PS4 Pro, PS5, PS5 Digital Edition and PS5 Pro**, built specifically for the Anbernic RG34XXSP. It lets you stream and control your PlayStation console over the network directly from the handheld.
+Retro Chiaki is a PlayStation Remote Play client for **PS4, PS4 Pro, PS5, PS5 Digital Edition and PS5 Pro**, designed for Anbernic handhelds based on the Allwinner H700. It lets you stream and control your PlayStation console over the network directly from the handheld.
 
-It is a handheld-focused fork of [Chiaki 2.2.0](https://git.sr.ht/~thestr4ng3r/chiaki), packaged as a ready-to-use PortMaster-style port for Anbernic handhelds running muOS. In other words: PS4 Remote Play and PS5 Remote Play on the Anbernic RG34XXSP, without needing to know what upstream Chiaki is or install desktop Linux packages.
+It is a handheld-focused fork of [Chiaki 2.2.0](https://git.sr.ht/~thestr4ng3r/chiaki), packaged as a ready-to-use PortMaster-style port for H700 handhelds running muOS. In other words: PS4 Remote Play and PS5 Remote Play on an Anbernic Linux handheld, without needing to know what upstream Chiaki is or install desktop Linux packages.
 
 > This project is not endorsed or certified by Sony Interactive Entertainment. You need your own PS4 or PS5 and PSN account.
 
 ## Who this is for
 
-The current release is built and tested specifically for:
+Retro Chiaki is intended for:
+
+- Anbernic handhelds based on the Allwinner H700 / Mali GPU
+- 720×480 and 640×480 displays
+- compatible muOS installations
+
+The currently verified configuration is:
 
 - Anbernic RG34XXSP
-- Allwinner H700 / Mali GPU
 - 720×480 (3:2) display
 - muOS 2601 Jacaranda
 
 Retro Chiaki now detects the framebuffer resolution when it starts and constrains its interface and stream window to the actual display. The same ARM64 build is designed to support both **720×480** and **640×480** screens; `Original` preserves the stream aspect ratio and `Stretch to Screen` fills the detected panel.
 
-**640×480 status:** the adaptive layout is implemented, but has not yet been verified on real 640×480 hardware. The compatibility guarantee currently remains limited to the RG34XXSP configuration above. Do not assume that sharing the H700 SoC is sufficient for compatibility; please report the device model, firmware and results in [Issues](https://github.com/ed-fruty/retro-chiaki/issues).
+**Compatibility status:** other H700 devices and 640×480 panels are supported by the adaptive launcher and layout, but have not yet been verified on real hardware. Controller device names, firmware integration, audio and GPU libraries can differ between models, so the compatibility guarantee currently remains limited to the RG34XXSP configuration above. Please report the device model, screen resolution, firmware and results in [Issues](https://github.com/ed-fruty/retro-chiaki/issues).
 
 **KNULLI status:** KNULLI support has not been tested yet and is not included in the current compatibility guarantee. A dedicated KNULLI build may be added later. If you try Retro Chiaki on KNULLI, please leave a report with the device and firmware version in [Issues](https://github.com/ed-fruty/retro-chiaki/issues).
 
@@ -28,7 +33,7 @@ Retro Chiaki now detects the framebuffer resolution when it starts and constrain
 - On-screen keyboard for PSN Account ID and registration PIN entry.
 - Working OpenGL ES shaders and video rendering on the H700 Mali stack.
 - `Original` and `Stretch to Screen` display modes.
-- SDL controller mapping tailored for the RG34XXSP/muOS input device.
+- SDL controller mapping tailored for the known Anbernic H700/muOS input device, verified on RG34XXSP.
 - Analog sticks, triggers, shoulder buttons and L3/R3 Remote Play input fixes.
 - Select is mapped to the DualSense touchpad click.
 - Select + Start exits the application, matching the usual muOS/PortMaster convention.
@@ -53,7 +58,7 @@ Before streaming, the left stick controls the mouse; D-pad and face buttons navi
 
 ## Recommended stream settings
 
-For the RG34XXSP, start with this profile:
+For H700 handhelds, start with this profile:
 
 | Setting | Recommended value |
 |---|---|
@@ -78,7 +83,7 @@ See [the detailed installation and setup guide](docs/INSTALL.md) for SD2 setups,
 
 ## Feedback
 
-This port was developed and tested on real RG34XXSP hardware. Please [open an issue](https://github.com/ed-fruty/retro-chiaki/issues) with:
+This port was developed and tested on real RG34XXSP hardware. Reports from other H700 devices are especially welcome. Please [open an issue](https://github.com/ed-fruty/retro-chiaki/issues) with:
 
 - device model and muOS version;
 - what works and what does not;
