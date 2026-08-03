@@ -26,6 +26,7 @@ class StreamWindow: public QMainWindow
 		QAction *stretch_action;
 		QAction *zoom_action;
 		AVOpenGLWidget *av_widget;
+		bool cursor_override_active;
 
 		void Init();
 		void UpdateVideoTransform();

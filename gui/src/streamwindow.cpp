@@ -11,6 +11,10 @@
 #include <QCoreApplication>
 #include <QAction>
 #include <QMenu>
+#include <QProcess>
+#include <QGuiApplication>
+#include <QScreen>
+#include <QCursor>
 
 StreamWindow::StreamWindow(const StreamSessionConnectInfo &connect_info, QWidget *parent)
 	: QMainWindow(parent),
@@ -21,6 +25,7 @@ StreamWindow::StreamWindow(const StreamSessionConnectInfo &connect_info, QWidget
 		
 	session = nullptr;
 	av_widget = nullptr;
+	cursor_override_active = false;
 
 	try
 	{
@@ -37,12 +42,23 @@ StreamWindow::~StreamWindow()
 {
 	// make sure av_widget is always deleted before the session
 	delete av_widget;
+	if(QGuiApplication::platformName() == "eglfs")
+	{
+		if(cursor_override_active)
+			QGuiApplication::restoreOverrideCursor();
+		QProcess::execute("pkill", QStringList() << "-CONT" << "gptokeyb");
+	}
 }
-
-#include <QGuiApplication>
 
 void StreamWindow::Init()
 {
+	// gptokeyb is needed to navigate the desktop-style connection UI, but its
+	// synthetic mouse/keyboard events duplicate the native SDL controller while
+	// streaming. Pause it for the lifetime of the stream window and resume it in
+	// the destructor when returning to the connection UI.
+	if(QGuiApplication::platformName() == "eglfs")
+		QProcess::execute("pkill", QStringList() << "-STOP" << "gptokeyb");
+
 	session = new StreamSession(connect_info, this);
 
 	connect(session, &StreamSession::SessionQuit, this, &StreamWindow::SessionQuit);
@@ -63,21 +79,27 @@ void StreamWindow::Init()
 		av_widget = new AVOpenGLWidget(session, this, connect_info.transform_mode);
 		setCentralWidget(av_widget);
 
-		av_widget->setContextMenuPolicy(Qt::CustomContextMenu);
-		connect(av_widget, &QWidget::customContextMenuRequested, this, [this](const QPoint &pos) {
-			av_widget->ResetMouseTimeout();
+		// gptokeyb can emit a synthetic right click for a stick click on muOS.
+		// Do not expose the desktop context menu on eglfs; display mode remains
+		// available in Settings and controller clicks must go only to Remote Play.
+		if(QGuiApplication::platformName() != "eglfs")
+		{
+			av_widget->setContextMenuPolicy(Qt::CustomContextMenu);
+			connect(av_widget, &QWidget::customContextMenuRequested, this, [this](const QPoint &pos) {
+				av_widget->ResetMouseTimeout();
 
-			QMenu menu(av_widget);
-			menu.addAction(fullscreen_action);
-			menu.addSeparator();
-			menu.addAction(stretch_action);
-			menu.addAction(zoom_action);
-			releaseKeyboard();
-			connect(&menu, &QMenu::aboutToHide, this, [this] {
-				grabKeyboard();
+				QMenu menu(av_widget);
+				menu.addAction(fullscreen_action);
+				menu.addSeparator();
+				menu.addAction(stretch_action);
+				menu.addAction(zoom_action);
+				releaseKeyboard();
+				connect(&menu, &QMenu::aboutToHide, this, [this] {
+					grabKeyboard();
+				});
+				menu.exec(av_widget->mapToGlobal(pos));
 			});
-			menu.exec(av_widget->mapToGlobal(pos));
-		});
+		}
 	}
 	else
 	{
@@ -109,7 +131,36 @@ void StreamWindow::Init()
 
 	resize(connect_info.video_profile.width, connect_info.video_profile.height);
 
-	if(connect_info.fullscreen)
+	// eglfs has no window manager to scale or constrain a top-level window.
+	// A stream window created at the source resolution (for example 960x540)
+	// is therefore clipped by a 720x480 framebuffer.  Fullscreen state alone is
+	// not sufficient on all eglfs integrations, so pin both Qt widgets to the
+	// physical screen geometry and use a frameless top-level window.
+	if(QGuiApplication::platformName() == "eglfs")
+	{
+		// A widget-local blank cursor is not always applied by eglfs when the
+		// synthetic gptokey cursor already exists. Override it application-wide
+		// for the complete lifetime of the stream window.
+		QGuiApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
+		cursor_override_active = true;
+		setCursor(Qt::BlankCursor);
+		if(av_widget)
+			av_widget->setCursor(Qt::BlankCursor);
+
+		QScreen *screen = QGuiApplication::primaryScreen();
+		QSize screen_size = screen ? screen->geometry().size() : QSize(720, 480);
+		CHIAKI_LOGI(session->GetChiakiLog(), "EGLFS stream geometry: screen=%dx%d source=%dx%d",
+			screen_size.width(), screen_size.height(),
+			connect_info.video_profile.width, connect_info.video_profile.height);
+		setWindowFlag(Qt::FramelessWindowHint, true);
+		setFixedSize(screen_size);
+		if(av_widget)
+			av_widget->setFixedSize(screen_size);
+		move(0, 0);
+		show();
+		fullscreen_action->setChecked(true);
+	}
+	else if(connect_info.fullscreen)
 	{
 		showFullScreen();
 		fullscreen_action->setChecked(true);
@@ -139,6 +190,11 @@ void StreamWindow::Quit()
 
 void StreamWindow::mousePressEvent(QMouseEvent *event)
 {
+	// On handheld eglfs builds gptokeyb emits a synthetic mouse click for the
+	// same physical A button SDL already sends as Cross.  Do not also turn that
+	// click into a PS touchpad press while streaming.
+	if(QGuiApplication::platformName() == "eglfs")
+		return;
 	if(session && session->HandleMouseEvent(event))
 		return;
 	QMainWindow::mousePressEvent(event);
@@ -146,6 +202,8 @@ void StreamWindow::mousePressEvent(QMouseEvent *event)
 
 void StreamWindow::mouseReleaseEvent(QMouseEvent *event)
 {
+	if(QGuiApplication::platformName() == "eglfs")
+		return;
 	if(session && session->HandleMouseEvent(event))
 		return;
 	QMainWindow::mouseReleaseEvent(event);

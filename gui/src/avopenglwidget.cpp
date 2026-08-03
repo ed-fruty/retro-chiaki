@@ -10,13 +10,13 @@
 #include <QOpenGLDebugLogger>
 #include <QThread>
 #include <QTimer>
+#include <QGuiApplication>
 
 #define MOUSE_TIMEOUT_MS 1000
 
 //#define DEBUG_OPENGL
 
-static const char *shader_vert_glsl = R"glsl(
-#version 150 core
+static const char *shader_vert_glsl = R"glsl(#version 150 core
 
 in vec2 pos_attr;
 
@@ -29,8 +29,7 @@ void main()
 }
 )glsl";
 
-static const char *yuv420p_shader_frag_glsl = R"glsl(
-#version 150 core
+static const char *yuv420p_shader_frag_glsl = R"glsl(#version 150 core
 
 uniform sampler2D plane1; // Y
 uniform sampler2D plane2; // U
@@ -53,8 +52,7 @@ void main()
 }
 )glsl";
 
-static const char *nv12_shader_frag_glsl = R"glsl(
-#version 150 core
+static const char *nv12_shader_frag_glsl = R"glsl(#version 150 core
 
 uniform sampler2D plane1; // Y
 uniform sampler2D plane2; // interlaced UV
@@ -147,10 +145,14 @@ AVOpenGLWidget::AVOpenGLWidget(StreamSession *session, QWidget *parent, Transfor
 	frame_uploader_thread = nullptr;
 	frame_fg = 0;
 
-	setMouseTracking(true);
+	const bool handheld_eglfs = QGuiApplication::platformName() == "eglfs";
+	setMouseTracking(!handheld_eglfs);
 	mouse_timer = new QTimer(this);
 	connect(mouse_timer, &QTimer::timeout, this, &AVOpenGLWidget::HideMouse);
-	ResetMouseTimeout();
+	if(handheld_eglfs)
+		HideMouse();
+	else
+		ResetMouseTimeout();
 }
 
 AVOpenGLWidget::~AVOpenGLWidget()
@@ -169,11 +171,17 @@ AVOpenGLWidget::~AVOpenGLWidget()
 void AVOpenGLWidget::mouseMoveEvent(QMouseEvent *event)
 {
 	QOpenGLWidget::mouseMoveEvent(event);
-	ResetMouseTimeout();
+	if(QGuiApplication::platformName() != "eglfs")
+		ResetMouseTimeout();
 }
 
 void AVOpenGLWidget::ResetMouseTimeout()
 {
+	if(QGuiApplication::platformName() == "eglfs")
+	{
+		HideMouse();
+		return;
+	}
 	unsetCursor();
 	mouse_timer->start(MOUSE_TIMEOUT_MS);
 }
@@ -242,7 +250,8 @@ bool AVOpenGLFrame::Update(AVFrame *frame, ChiakiLog *log)
 
 void AVOpenGLWidget::initializeGL()
 {
-	auto f = QOpenGLContext::currentContext()->extraFunctions();
+	auto current_context = QOpenGLContext::currentContext();
+	auto f = current_context->extraFunctions();
 
 	const char *gl_version = (const char *)f->glGetString(GL_VERSION);
 	CHIAKI_LOGI(session->GetChiakiLog(), "OpenGL initialized with version \"%s\"", gl_version ? gl_version : "(null)");
@@ -269,13 +278,28 @@ void AVOpenGLWidget::initializeGL()
 		CHIAKI_LOGE(session->GetChiakiLog(), "Failed to Compile Shader:\n%s", info_log.data());
 	};
 
+	QByteArray shader_vert_source(conversion_config->shader_vert_glsl);
+	QByteArray shader_frag_source(conversion_config->shader_frag_glsl);
+	if(current_context->isOpenGLES())
+	{
+		// GLSL 1.50 is the desktop OpenGL spelling.  Mali's GLES compiler
+		// supports the same shader features through GLSL ES 3.00, but rejects
+		// the desktop version directive and leaves the video surface black.
+		const QByteArray desktop_version("#version 150 core");
+		const QByteArray es_version("#version 300 es\nprecision highp float;");
+		shader_vert_source.replace(desktop_version, es_version);
+		shader_frag_source.replace(desktop_version, es_version);
+	}
+
+	const char *shader_vert_source_ptr = shader_vert_source.constData();
 	GLuint shader_vert = f->glCreateShader(GL_VERTEX_SHADER);
-	f->glShaderSource(shader_vert, 1, &conversion_config->shader_vert_glsl, nullptr);
+	f->glShaderSource(shader_vert, 1, &shader_vert_source_ptr, nullptr);
 	f->glCompileShader(shader_vert);
 	CheckShaderCompiled(shader_vert);
 
+	const char *shader_frag_source_ptr = shader_frag_source.constData();
 	GLuint shader_frag = f->glCreateShader(GL_FRAGMENT_SHADER);
-	f->glShaderSource(shader_frag, 1, &conversion_config->shader_frag_glsl, nullptr);
+	f->glShaderSource(shader_frag, 1, &shader_frag_source_ptr, nullptr);
 	f->glCompileShader(shader_frag);
 	CheckShaderCompiled(shader_frag);
 
