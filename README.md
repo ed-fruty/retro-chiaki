@@ -68,6 +68,15 @@ This port was developed and tested on real RG34XXSP hardware. Please [open an is
 
 Feature requests and control-layout suggestions are welcome too.
 
+## Support the project
+
+If Retro Chiaki is useful to you and you would like to support further device builds, testing and maintenance, you can leave a donation here:
+
+[![Support on Ko-fi](https://img.shields.io/badge/Support_on_Ko--fi-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/edfruty)
+[![Support on Donatello](https://img.shields.io/badge/Support_on_Donatello-F9C80E?style=for-the-badge&logo=buymeacoffee&logoColor=111111)](https://donatello.to/EdFruty)
+
+Donations are optional. Bug reports, testing results and suggestions are valuable contributions too.
+
 ## Building
 
 The ARM64 cross-build files and EGL shim source are in [`packaging/build`](packaging/build). See [BUILDING.md](docs/BUILDING.md).
