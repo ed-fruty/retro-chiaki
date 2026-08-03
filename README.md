@@ -82,6 +82,12 @@ These are also the defaults for a fresh Retro Chiaki configuration. Existing Chi
 
 See [the detailed installation and setup guide](docs/INSTALL.md) for SD2 setups, registration, resolution changes and troubleshooting.
 
+### `Unknown ctrl error` when starting a stream
+
+If Chiaki reaches the console but exits with **`Chiaki session has quit: Unknown ctrl error`**, the PlayStation Remote Play session may be temporarily busy or stuck. Session logs commonly show `InvalidSessionId`, `Ctrl did not receive session id`, or a failed Takion handshake in this situation. This can happen even when the console is registered correctly and Chiaki itself has not changed.
+
+Wait a minute and try again. If it continues, close any other Remote Play clients, confirm Remote Play is enabled on the console, and perform a full **Restart PS4/PS5** rather than only entering Rest Mode. Reinstalling Retro Chiaki or registering the console again should not be the first troubleshooting step.
+
 ## Runtime requirements
 
 No separately downloadable PortMaster runtime is required. The release package already bundles Qt 5, the EGLFS platform plugin, supporting Qt plugins, XKB data, the Mali EGL compatibility shim and the additional libraries needed by that Qt build.

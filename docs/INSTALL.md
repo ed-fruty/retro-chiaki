@@ -52,6 +52,7 @@ The tested muOS firmware provides SDL2, FFmpeg, OpenSSL, Opus, evdev/udev and th
 
 - Restart Chiaki completely after replacing a release binary.
 - Verify Wi-Fi and Remote Play are enabled on the console.
+- **`Unknown ctrl error`:** if the log shows `InvalidSessionId`, `Ctrl did not receive session id`, or a Takion handshake timeout after a successful login, the console's Remote Play session may be temporarily busy or stuck. Wait and retry, close other Remote Play clients, then fully restart the PS4/PS5 if necessary. Do not immediately reinstall Chiaki or register the console again.
 - If video works but audio does not, verify muOS PipeWire/WirePlumber are running and the internal speaker sink is selected.
 - Session logs are normally under `/root/.local/share/Chiaki/Chiaki/log/`.
 - Remove account IDs, IPs, registration keys and other private data before attaching logs to an issue.
