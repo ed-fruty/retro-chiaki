@@ -1,6 +1,8 @@
-# Retro Chiaki
+# Retro Chiaki — PS4 / PS5 Remote Play for RG34XXSP
 
-Retro Chiaki is a handheld-focused fork of [Chiaki 2.2.0](https://git.sr.ht/~thestr4ng3r/chiaki), the free and open-source PS4/PS5 Remote Play client. This fork packages Chiaki as a ready-to-use PortMaster-style port for small ARM64 Linux handhelds running muOS.
+Retro Chiaki is a PlayStation Remote Play client for **PS4, PS4 Pro, PS5, PS5 Digital Edition and PS5 Pro**, built specifically for the Anbernic RG34XXSP. It lets you stream and control your PlayStation console over the network directly from the handheld.
+
+It is a handheld-focused fork of [Chiaki 2.2.0](https://git.sr.ht/~thestr4ng3r/chiaki), packaged as a ready-to-use PortMaster-style port for muOS. In other words: PS4 Remote Play and PS5 Remote Play on the RG34XXSP, without needing to know what upstream Chiaki is or install desktop Linux packages.
 
 > This project is not endorsed or certified by Sony Interactive Entertainment. You need your own PS4 or PS5 and PSN account.
 
@@ -21,7 +23,7 @@ This build is **not intended for 640×480 devices**. Those devices need a separa
 - UI resized and made scrollable for a 720×480 screen.
 - On-screen keyboard for PSN Account ID and registration PIN entry.
 - Working OpenGL ES shaders and video rendering on the H700 Mali stack.
-- `Keep 16:9` and `Stretch to Screen` display modes.
+- `Original` and `Stretch to Screen` display modes.
 - SDL controller mapping tailored for the RG34XXSP/muOS input device.
 - Analog sticks, triggers, shoulder buttons and L3/R3 Remote Play input fixes.
 - Select is mapped to the DualSense touchpad click.
@@ -45,9 +47,22 @@ Before streaming, the left stick controls the mouse; D-pad and face buttons navi
 | Select | Touchpad click |
 | Select + Start | Exit Retro Chiaki |
 
+## Recommended stream settings
+
+For the RG34XXSP, start with this profile:
+
+| Setting | Recommended value |
+|---|---|
+| Resolution | **540p** |
+| FPS | **30** |
+| Codec | **H.264** |
+| Display Mode | **Original** for correct aspect ratio, or **Stretch to Screen** to fill the 3:2 display |
+
+These are also the defaults for a fresh Retro Chiaki configuration. Existing Chiaki settings are preserved when upgrading.
+
 ## Installation
 
-1. Download `retro-chiaki-v0.1.0-portmaster-muos-rg34xxsp-720x480.zip` from [Releases](https://github.com/ed-fruty/retro-chiaki/releases).
+1. Download the latest `retro-chiaki-…-portmaster-muos-rg34xxsp-720x480.zip` from [Releases](https://github.com/ed-fruty/retro-chiaki/releases).
 2. Extract the archive to the root of the SD card containing your muOS ROMs.
 3. Confirm that these paths exist:
    - `/mnt/mmc/ports/chiaki/chiaki`

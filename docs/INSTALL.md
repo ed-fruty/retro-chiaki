@@ -25,9 +25,9 @@ The upstream helper [`scripts/psn-account-id.py`](../scripts/psn-account-id.py) 
 
 ## Display mode
 
-In **Settings → Stream Settings → Display Mode**, choose:
+Recommended RG34XXSP stream settings are **540p**, **30 FPS**, and **H.264**. In **Settings → Stream Settings → Display Mode**, choose:
 
-- **Keep 16:9** for correct proportions with letterboxing on the 3:2 display.
+- **Original** for correct 16:9 proportions with letterboxing on the 3:2 display.
 - **Stretch to Screen** to use the complete 720×480 panel.
 
 ## Other devices and resolutions

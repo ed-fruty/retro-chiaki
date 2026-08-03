@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.1
+
+- Added clear PS4, PS4 Pro, PS5, PS5 Digital Edition and PS5 Pro Remote Play positioning.
+- Changed fresh-install defaults to 540p, 30 FPS and H.264 for RG34XXSP.
+- Renamed the `Keep 16:9` display mode to `Original`.
+
 ## v0.1.0
 
 First public RG34XXSP 720×480 muOS/PortMaster release based on Chiaki 2.2.0.
