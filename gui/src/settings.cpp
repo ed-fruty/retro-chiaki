@@ -94,7 +94,7 @@ static const QMap<ChiakiVideoResolutionPreset, QString> resolutions = {
 	{ CHIAKI_VIDEO_RESOLUTION_PRESET_1080p, "1080p" }
 };
 
-static const ChiakiVideoResolutionPreset resolution_default = CHIAKI_VIDEO_RESOLUTION_PRESET_720p;
+static const ChiakiVideoResolutionPreset resolution_default = CHIAKI_VIDEO_RESOLUTION_PRESET_540p;
 
 ChiakiVideoResolutionPreset Settings::GetResolution() const
 {
@@ -112,7 +112,7 @@ static const QMap<ChiakiVideoFPSPreset, int> fps_values = {
 	{ CHIAKI_VIDEO_FPS_PRESET_60, 60 }
 };
 
-static const ChiakiVideoFPSPreset fps_default = CHIAKI_VIDEO_FPS_PRESET_60;
+static const ChiakiVideoFPSPreset fps_default = CHIAKI_VIDEO_FPS_PRESET_30;
 
 ChiakiVideoFPSPreset Settings::GetFPS() const
 {
@@ -140,7 +140,7 @@ static const QMap<ChiakiCodec, QString> codecs = {
 	{ CHIAKI_CODEC_H265, "h265" }
 };
 
-static const ChiakiCodec codec_default = CHIAKI_CODEC_H265;
+static const ChiakiCodec codec_default = CHIAKI_CODEC_H264;
 
 ChiakiCodec Settings::GetCodec() const
 {

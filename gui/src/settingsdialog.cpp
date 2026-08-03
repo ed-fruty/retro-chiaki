@@ -168,7 +168,7 @@ SettingsDialog::SettingsDialog(Settings *settings, QWidget *parent) : QDialog(pa
 	stream_settings_layout->addRow(tr("Resolution:"), resolution_combo_box);
 
 	transform_mode_combo_box = new QComboBox(this);
-	transform_mode_combo_box->addItem(tr("Keep 16:9"), (int)TransformMode::Fit);
+	transform_mode_combo_box->addItem(tr("Original"), (int)TransformMode::Fit);
 	transform_mode_combo_box->addItem(tr("Stretch to Screen"), (int)TransformMode::Stretch);
 	transform_mode_combo_box->setCurrentIndex(
 		transform_mode_combo_box->findData((int)settings->GetTransformMode()));
