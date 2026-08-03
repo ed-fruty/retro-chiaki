@@ -6,6 +6,12 @@ It is a handheld-focused fork of [Chiaki 2.2.0](https://git.sr.ht/~thestr4ng3r/c
 
 > This project is not endorsed or certified by Sony Interactive Entertainment. You need your own PS4 or PS5 and PSN account.
 
+<p align="center">
+  <img src="assets/screenshots/remote-play-home.jpg" width="560" alt="PS5 Remote Play home screen running on an Anbernic RG34XXSP">
+  <br>
+  <em>PS5 Remote Play running on the Anbernic RG34XXSP.</em>
+</p>
+
 ## Who this is for
 
 Retro Chiaki is intended for:
@@ -56,6 +62,14 @@ Before streaming, the left stick controls the mouse; D-pad and face buttons navi
 | Select | Touchpad click |
 | Select + Start | Exit Retro Chiaki |
 
+### Remote Play in action
+
+<p align="center">
+  <img src="assets/screenshots/remote-play-game.jpg" width="500" alt="PlayStation game streaming through Retro Chiaki on an Anbernic RG34XXSP">
+  <br>
+  <em>A live PlayStation stream using the Original display mode.</em>
+</p>
+
 ## Recommended stream settings
 
 For H700 handhelds, start with this profile:
@@ -68,6 +82,20 @@ For H700 handhelds, start with this profile:
 | Display Mode | **Original** for correct aspect ratio, or **Stretch to Screen** to fill the 3:2 display |
 
 These are also the defaults for a fresh Retro Chiaki configuration. Existing Chiaki settings are preserved when upgrading.
+
+<p align="center">
+  <img src="assets/screenshots/recommended-settings.jpg" width="480" alt="Recommended Retro Chiaki stream settings on an Anbernic RG34XXSP">
+  <br>
+  <em>The recommended 540p, 30 FPS and H.264 profile on the handheld.</em>
+</p>
+
+## Registration on the handheld
+
+Console registration can be completed without a physical keyboard. Select an **Enter…** button beside the PSN Online ID, PSN Account ID or PIN field to open Retro Chiaki's controller-friendly on-screen keyboard.
+
+| Console registration | On-screen keyboard |
+|---|---|
+| ![PS5 console registration screen on the RG34XXSP](assets/screenshots/console-registration.jpg) | ![Retro Chiaki on-screen keyboard on the RG34XXSP](assets/screenshots/on-screen-keyboard.jpg) |
 
 ## Installation
 
