@@ -34,6 +34,25 @@ Recommended H700 stream settings are **540p**, **30 FPS**, and **H.264**. In **S
 
 This package is designed for compatible Allwinner H700 handhelds and detects 720×480 or 640×480 framebuffer geometry at runtime. It has currently been tested only on the Anbernic RG34XXSP (720×480) with muOS 2601 Jacaranda. Other H700 models may use different controller, audio, GPU or firmware integration and should be treated as unverified until reported by users.
 
+## Optional Applications entry
+
+Install the PortMaster package first. Then extract the optional `retro-chiaki-muos-application-launcher-….zip` to the root of the card containing the `MUOS` directory. This adds:
+
+```text
+MUOS/application/Retro Chiaki/
+├── mux_launch.sh
+├── mux_lang.ini
+└── glyph/retro_chiaki.png
+```
+
+Retro Chiaki will then appear in the native muOS **Applications** section with its own icon. This entry is a shortcut to the PortMaster installation rather than a second copy of the program. It uses the active ROM storage reported by muOS, so SD1 and SD2 configurations do not need hardcoded paths.
+
+## PortMaster and system dependencies
+
+You do not need to install a PortMaster runtime such as `mono`, `love` or `weston`. Retro Chiaki ships its own Qt 5 libraries, Qt EGLFS and image plugins, XKB data and Mali EGL shim inside `ports/chiaki/`.
+
+The tested muOS firmware provides SDL2, FFmpeg, OpenSSL, Opus, evdev/udev and the audio stack. PortMaster itself provides `gptokeyb`, controller discovery and the usual exit-hotkey lifecycle used by the launcher. Therefore removing PortMaster currently breaks both launch entries even though Qt itself is bundled with Retro Chiaki.
+
 ## Troubleshooting
 
 - Restart Chiaki completely after replacing a release binary.

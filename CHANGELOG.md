@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added an optional native muOS Applications shortcut with custom artwork.
+- Documented bundled Qt components, system library expectations and the remaining PortMaster/gptokeyb dependency.
 - Expanded project positioning to compatible Allwinner H700 handhelds while keeping RG34XXSP with muOS as the only verified configuration.
 - Added runtime framebuffer detection for a single 720×480/640×480 ARM64 build.
 - Constrained the main window, settings, registration and on-screen keyboard to the detected display size.
