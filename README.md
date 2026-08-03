@@ -2,7 +2,7 @@
 
 Retro Chiaki is a PlayStation Remote Play client for **PS4, PS4 Pro, PS5, PS5 Digital Edition and PS5 Pro**, built specifically for the Anbernic RG34XXSP. It lets you stream and control your PlayStation console over the network directly from the handheld.
 
-It is a handheld-focused fork of [Chiaki 2.2.0](https://git.sr.ht/~thestr4ng3r/chiaki), packaged as a ready-to-use PortMaster-style port for muOS. In other words: PS4 Remote Play and PS5 Remote Play on the RG34XXSP, without needing to know what upstream Chiaki is or install desktop Linux packages.
+It is a handheld-focused fork of [Chiaki 2.2.0](https://git.sr.ht/~thestr4ng3r/chiaki), packaged as a ready-to-use PortMaster-style port for Anbernic handhelds running muOS. In other words: PS4 Remote Play and PS5 Remote Play on the Anbernic RG34XXSP, without needing to know what upstream Chiaki is or install desktop Linux packages.
 
 > This project is not endorsed or certified by Sony Interactive Entertainment. You need your own PS4 or PS5 and PSN account.
 
@@ -16,6 +16,8 @@ The current release is built and tested specifically for:
 - muOS 2601 Jacaranda
 
 This build is **not intended for 640×480 devices**. Those devices need a separate build and testing pass; a dedicated release may be added later. Do not assume that sharing the H700 SoC is sufficient for compatibility.
+
+**KNULLI status:** KNULLI support has not been tested yet and is not included in the current compatibility guarantee. A dedicated KNULLI build may be added later. If you try Retro Chiaki on KNULLI, please leave a report with the device and firmware version in [Issues](https://github.com/ed-fruty/retro-chiaki/issues).
 
 ## What differs from upstream Chiaki
 
