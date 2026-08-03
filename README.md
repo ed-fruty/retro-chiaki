@@ -12,6 +12,16 @@ It is a handheld-focused fork of [Chiaki 2.2.0](https://git.sr.ht/~thestr4ng3r/c
   <em>PS5 Remote Play running on the Anbernic RG34XXSP.</em>
 </p>
 
+## Quick video preview
+
+<p align="center">
+  <a href="https://www.youtube.com/shorts/PLFLnekwmY4">
+    <img src="https://img.youtube.com/vi/PLFLnekwmY4/hqdefault.jpg" width="560" alt="Watch Retro Chiaki PS5 Remote Play running on an Anbernic RG34XXSP">
+  </a>
+  <br>
+  <a href="https://www.youtube.com/shorts/PLFLnekwmY4"><strong>Watch PS5 Remote Play on the RG34XXSP →</strong></a>
+</p>
+
 ## Who this is for
 
 Retro Chiaki is intended for:
