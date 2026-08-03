@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: LicenseRef-AGPL-3.0-only-OpenSSL
 
 #include <controllermanager.h>
+#include <QCoreApplication>
 
 #include <QCoreApplication>
 #include <QMessageBox>
@@ -360,7 +361,9 @@ inline bool Controller::HandleButtonEvent(SDL_ControllerButtonEvent event) {
 			ps_btn = CHIAKI_CONTROLLER_BUTTON_OPTIONS;
 			break;
 		case SDL_CONTROLLER_BUTTON_BACK:
-			ps_btn = CHIAKI_CONTROLLER_BUTTON_SHARE;
+			// RG34XXSP has no dedicated touchpad click. Its Select button is more
+			// useful as the DualSense touchpad button than as Share/Create.
+			ps_btn = CHIAKI_CONTROLLER_BUTTON_TOUCHPAD;
 			break;
 		case SDL_CONTROLLER_BUTTON_GUIDE:
 			ps_btn = CHIAKI_CONTROLLER_BUTTON_PS;
@@ -377,6 +380,13 @@ inline bool Controller::HandleButtonEvent(SDL_ControllerButtonEvent event) {
 		state.buttons |= ps_btn;
 	else
 		state.buttons &= ~ps_btn;
+
+	// Preserve PortMaster/muOS's standard Select + Start exit hotkey while
+	// gptokeyb is paused during streaming. Select is exposed to PS as Touchpad
+	// on this handheld, so test the translated controller state here.
+	const uint32_t exit_combo = CHIAKI_CONTROLLER_BUTTON_TOUCHPAD | CHIAKI_CONTROLLER_BUTTON_OPTIONS;
+	if((state.buttons & exit_combo) == exit_combo)
+		QCoreApplication::quit();
 	return true;
 }
 
