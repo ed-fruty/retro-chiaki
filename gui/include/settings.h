@@ -129,6 +129,28 @@ class Settings : public QObject
 		QMap<int, Qt::Key> GetControllerMapping();
 		QMap<Qt::Key, int> GetControllerMappingForDecoding();
 
+		// Real-gamepad button mapping: which physical input triggers each
+		// Chiaki/PS button (including L2/R2). Unlike GetControllerMapping()
+		// above (a keyboard-as-controller fallback with no use on a handheld
+		// with no keyboard), this drives the actual gamepad path in
+		// Controller::HandleButtonEvent / HandleAxisEvent.
+		//
+		// This handheld's L2/R2 are plain digital switches under the hood (see
+		// chiaki.sh's SDL_GAMECONTROLLERCONFIG: lefttrigger:b13,
+		// righttrigger:b14 -- raw buttons, not potentiometers); SDL still
+		// reports them as axis events because that's how it categorizes any
+		// "trigger" input regardless of source. kTriggerLeftSource/
+		// kTriggerRightSource are sentinel values (outside the real
+		// SDL_GameControllerButton range) used to represent those two physical
+		// triggers as ordinary entries in this same map, so any button
+		// (including L2/R2 themselves) can be freely reassigned to any other.
+		static constexpr int kTriggerLeftSource = 1000;
+		static constexpr int kTriggerRightSource = 1001;
+		static QString GetSDLButtonName(int source);
+		static QList<int> GetRemappableSDLButtons();
+		void SetControllerButtonMapping(int chiaki_button, int source);
+		QMap<int, int> GetControllerButtonMapping();
+
 	signals:
 		void RegisteredHostsUpdated();
 		void ManualHostsUpdated();

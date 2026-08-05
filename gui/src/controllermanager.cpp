@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: LicenseRef-AGPL-3.0-only-OpenSSL
 
 #include <controllermanager.h>
+#include <settings.h>
 #include <QCoreApplication>
 
 #include <QCoreApplication>
@@ -267,6 +268,23 @@ Controller::Controller(int device_id, ControllerManager *manager)
 			break;
 		}
 	}
+
+	if(manager->GetSettings())
+	{
+		auto chiaki_to_sdl = manager->GetSettings()->GetControllerButtonMapping();
+		for(auto it = chiaki_to_sdl.begin(); it != chiaki_to_sdl.end(); ++it)
+			button_mapping.insert(it.value(), it.key());
+	}
+	else
+	{
+		CHIAKI_LOGW(NULL, "ControllerManager has no Settings -- gamepad buttons will not be mapped. This should have been wired up at startup.");
+	}
+	// Real touchpad hardware click (DualShock4/DualSense) always means PS
+	// Touchpad -- there's nothing else sensible to remap it to, and this
+	// handheld's own pad has no such button, so it's not user-configurable.
+#if SDL_VERSION_ATLEAST(2, 0, 14)
+	button_mapping.insert((int)SDL_CONTROLLER_BUTTON_TOUCHPAD, CHIAKI_CONTROLLER_BUTTON_TOUCHPAD);
+#endif
 #endif
 }
 
@@ -317,69 +335,30 @@ void Controller::UpdateState(SDL_Event event)
 	emit StateChanged();
 }
 
-inline bool Controller::HandleButtonEvent(SDL_ControllerButtonEvent event) {
-	ChiakiControllerButton ps_btn;
-	switch(event.button)
-	{
-		case SDL_CONTROLLER_BUTTON_A:
-			ps_btn = CHIAKI_CONTROLLER_BUTTON_CROSS;
-			break;
-		case SDL_CONTROLLER_BUTTON_B:
-			ps_btn = CHIAKI_CONTROLLER_BUTTON_MOON;
-			break;
-		case SDL_CONTROLLER_BUTTON_X:
-			ps_btn = CHIAKI_CONTROLLER_BUTTON_BOX;
-			break;
-		case SDL_CONTROLLER_BUTTON_Y:
-			ps_btn = CHIAKI_CONTROLLER_BUTTON_PYRAMID;
-			break;
-		case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
-			ps_btn = CHIAKI_CONTROLLER_BUTTON_DPAD_LEFT;
-			break;
-		case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
-			ps_btn = CHIAKI_CONTROLLER_BUTTON_DPAD_RIGHT;
-			break;
-		case SDL_CONTROLLER_BUTTON_DPAD_UP:
-			ps_btn = CHIAKI_CONTROLLER_BUTTON_DPAD_UP;
-			break;
-		case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
-			ps_btn = CHIAKI_CONTROLLER_BUTTON_DPAD_DOWN;
-			break;
-		case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
-			ps_btn = CHIAKI_CONTROLLER_BUTTON_L1;
-			break;
-		case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
-			ps_btn = CHIAKI_CONTROLLER_BUTTON_R1;
-			break;
-		case SDL_CONTROLLER_BUTTON_LEFTSTICK:
-			ps_btn = CHIAKI_CONTROLLER_BUTTON_L3;
-			break;
-		case SDL_CONTROLLER_BUTTON_RIGHTSTICK:
-			ps_btn = CHIAKI_CONTROLLER_BUTTON_R3;
-			break;
-		case SDL_CONTROLLER_BUTTON_START:
-			ps_btn = CHIAKI_CONTROLLER_BUTTON_OPTIONS;
-			break;
-		case SDL_CONTROLLER_BUTTON_BACK:
-			// RG34XXSP has no dedicated touchpad click. Its Select button is more
-			// useful as the DualSense touchpad button than as Share/Create.
-			ps_btn = CHIAKI_CONTROLLER_BUTTON_TOUCHPAD;
-			break;
-		case SDL_CONTROLLER_BUTTON_GUIDE:
-			ps_btn = CHIAKI_CONTROLLER_BUTTON_PS;
-			break;
-#if SDL_VERSION_ATLEAST(2, 0, 14)
-		case SDL_CONTROLLER_BUTTON_TOUCHPAD:
-			ps_btn = CHIAKI_CONTROLLER_BUTTON_TOUCHPAD;
-			break;
-#endif
-		default:
-			return false;
-		}
-	if(event.type == SDL_CONTROLLERBUTTONDOWN)
-		state.buttons |= ps_btn;
+inline void Controller::ApplyMappedButton(int chiaki_target, bool pressed)
+{
+	// L2/R2 are analog fields (l2_state/r2_state), not bits in the buttons
+	// bitmask -- a digital source driving them just goes full-scale on press,
+	// same as StreamSession::HandleKeyboardEvent already does for the
+	// keyboard-as-controller fallback.
+	if(chiaki_target == CHIAKI_CONTROLLER_ANALOG_BUTTON_L2)
+		state.l2_state = pressed ? 0xff : 0;
+	else if(chiaki_target == CHIAKI_CONTROLLER_ANALOG_BUTTON_R2)
+		state.r2_state = pressed ? 0xff : 0;
+	else if(pressed)
+		state.buttons |= (ChiakiControllerButton)chiaki_target;
 	else
-		state.buttons &= ~ps_btn;
+		state.buttons &= ~(ChiakiControllerButton)chiaki_target;
+}
+
+inline bool Controller::HandleButtonEvent(SDL_ControllerButtonEvent event) {
+	// Which physical button triggers which PS button (including L2/R2) is
+	// user-configurable via Settings::GetControllerButtonMapping() (Settings >
+	// Controller Button Mapping) -- button_mapping was built from it at
+	// construction time.
+	if(!button_mapping.contains((int)event.button))
+		return false;
+	ApplyMappedButton(button_mapping[(int)event.button], event.type == SDL_CONTROLLERBUTTONDOWN);
 
 	// Preserve PortMaster/muOS's standard Select + Start exit hotkey while
 	// gptokeyb is paused during streaming. Select is exposed to PS as Touchpad
@@ -394,11 +373,25 @@ inline bool Controller::HandleAxisEvent(SDL_ControllerAxisEvent event) {
 	switch(event.axis)
 	{
 		case SDL_CONTROLLER_AXIS_TRIGGERLEFT:
-			state.l2_state = (uint8_t)(event.value >> 7);
-			break;
 		case SDL_CONTROLLER_AXIS_TRIGGERRIGHT:
-			state.r2_state = (uint8_t)(event.value >> 7);
+		{
+			// This handheld's triggers are plain digital switches under the
+			// hood (see Settings::kTriggerLeftSource's doc comment), so which
+			// PS button each physical trigger drives is looked up in the same
+			// button_mapping as everything else.
+			int source = event.axis == SDL_CONTROLLER_AXIS_TRIGGERLEFT ? Settings::kTriggerLeftSource : Settings::kTriggerRightSource;
+			if(!button_mapping.contains(source))
+				return false;
+			uint8_t value = (uint8_t)(event.value >> 7);
+			int chiaki_target = button_mapping[source];
+			if(chiaki_target == CHIAKI_CONTROLLER_ANALOG_BUTTON_L2)
+				state.l2_state = value;
+			else if(chiaki_target == CHIAKI_CONTROLLER_ANALOG_BUTTON_R2)
+				state.r2_state = value;
+			else
+				ApplyMappedButton(chiaki_target, value > 0);
 			break;
+		}
 		case SDL_CONTROLLER_AXIS_LEFTX:
 			state.left_x = event.value;
 			break;

@@ -80,6 +80,10 @@ int real_main(int argc, char *argv[])
 	QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
 	Settings settings;
+	// Must happen before any Controller is opened (StreamSession opens one per
+	// connected gamepad) so it can look up the user's real-gamepad button
+	// mapping, and before the settings dialog can capture raw button presses.
+	ControllerManager::GetInstance()->SetSettings(&settings);
 
 	QCommandLineParser parser;
 	parser.setOptionsAfterPositionalArgumentsMode(QCommandLineParser::ParseAsPositionalArguments);

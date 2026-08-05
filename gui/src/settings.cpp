@@ -5,6 +5,10 @@
 
 #include <chiaki/config.h>
 
+#ifdef CHIAKI_GUI_ENABLE_SDL_GAMECONTROLLER
+#include <SDL.h>
+#endif
+
 #define SETTINGS_VERSION 2
 
 static void MigrateSettingsTo2(QSettings *settings)
@@ -449,5 +453,122 @@ QMap<Qt::Key, int> Settings::GetControllerMappingForDecoding()
 	{
 		result[it.value()] = it.key();
 	}
+	return result;
+}
+
+QString Settings::GetSDLButtonName(int source)
+{
+	if(source == kTriggerLeftSource)
+		return tr("L2");
+	if(source == kTriggerRightSource)
+		return tr("R2");
+	// Kept to the short physical labels printed on this handheld -- these
+	// appear in every row's dropdown, so the widest one sets the width of
+	// all of them.
+#ifdef CHIAKI_GUI_ENABLE_SDL_GAMECONTROLLER
+	switch(source)
+	{
+		case SDL_CONTROLLER_BUTTON_A            : return tr("A");
+		case SDL_CONTROLLER_BUTTON_B            : return tr("B");
+		case SDL_CONTROLLER_BUTTON_X            : return tr("X");
+		case SDL_CONTROLLER_BUTTON_Y            : return tr("Y");
+		case SDL_CONTROLLER_BUTTON_DPAD_LEFT    : return tr("D-Left");
+		case SDL_CONTROLLER_BUTTON_DPAD_RIGHT   : return tr("D-Right");
+		case SDL_CONTROLLER_BUTTON_DPAD_UP      : return tr("D-Up");
+		case SDL_CONTROLLER_BUTTON_DPAD_DOWN    : return tr("D-Down");
+		case SDL_CONTROLLER_BUTTON_LEFTSHOULDER : return tr("L1");
+		case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER: return tr("R1");
+		case SDL_CONTROLLER_BUTTON_LEFTSTICK    : return tr("L3");
+		case SDL_CONTROLLER_BUTTON_RIGHTSTICK   : return tr("R3");
+		case SDL_CONTROLLER_BUTTON_START        : return tr("Start");
+		case SDL_CONTROLLER_BUTTON_BACK         : return tr("Select");
+		case SDL_CONTROLLER_BUTTON_GUIDE        : return tr("Guide");
+#if SDL_VERSION_ATLEAST(2, 0, 14)
+		case SDL_CONTROLLER_BUTTON_TOUCHPAD     : return tr("Touchpad");
+#endif
+		default: return tr("Unbound");
+	}
+#else
+	return tr("Unbound");
+#endif
+}
+
+QList<int> Settings::GetRemappableSDLButtons()
+{
+#ifdef CHIAKI_GUI_ENABLE_SDL_GAMECONTROLLER
+	QList<int> result = {
+		SDL_CONTROLLER_BUTTON_A,
+		SDL_CONTROLLER_BUTTON_B,
+		SDL_CONTROLLER_BUTTON_X,
+		SDL_CONTROLLER_BUTTON_Y,
+		SDL_CONTROLLER_BUTTON_DPAD_LEFT,
+		SDL_CONTROLLER_BUTTON_DPAD_RIGHT,
+		SDL_CONTROLLER_BUTTON_DPAD_UP,
+		SDL_CONTROLLER_BUTTON_DPAD_DOWN,
+		SDL_CONTROLLER_BUTTON_LEFTSHOULDER,
+		SDL_CONTROLLER_BUTTON_RIGHTSHOULDER,
+		SDL_CONTROLLER_BUTTON_LEFTSTICK,
+		SDL_CONTROLLER_BUTTON_RIGHTSTICK,
+		SDL_CONTROLLER_BUTTON_START,
+		SDL_CONTROLLER_BUTTON_BACK,
+		SDL_CONTROLLER_BUTTON_GUIDE,
+		kTriggerLeftSource,
+		kTriggerRightSource,
+	};
+#if SDL_VERSION_ATLEAST(2, 0, 14)
+	result.append(SDL_CONTROLLER_BUTTON_TOUCHPAD);
+#endif
+	return result;
+#else
+	return { kTriggerLeftSource, kTriggerRightSource };
+#endif
+}
+
+void Settings::SetControllerButtonMapping(int chiaki_button, int source)
+{
+	auto button_name = GetChiakiControllerButtonName(chiaki_button).replace(' ', '_').toLower();
+	settings.setValue("controllerbuttonmap/" + button_name, source);
+}
+
+QMap<int, int> Settings::GetControllerButtonMapping()
+{
+	// Defaults mirror the mapping that used to be hardcoded in
+	// Controller::HandleButtonEvent/HandleAxisEvent. SDL_CONTROLLER_BUTTON_TOUCHPAD
+	// (a real touchpad click on DualShock4/DualSense) is intentionally not listed
+	// here -- it is always wired to CHIAKI_CONTROLLER_BUTTON_TOUCHPAD in addition to
+	// whatever physical button is assigned below, since this handheld's own pad has
+	// no touchpad and there's nothing sensible to remap it to.
+	QMap<int, int> result =
+	{
+		{CHIAKI_CONTROLLER_ANALOG_BUTTON_L2 , kTriggerLeftSource},
+		{CHIAKI_CONTROLLER_ANALOG_BUTTON_R2 , kTriggerRightSource},
+	};
+#ifdef CHIAKI_GUI_ENABLE_SDL_GAMECONTROLLER
+	result.insert(CHIAKI_CONTROLLER_BUTTON_CROSS     , SDL_CONTROLLER_BUTTON_A);
+	result.insert(CHIAKI_CONTROLLER_BUTTON_MOON      , SDL_CONTROLLER_BUTTON_B);
+	result.insert(CHIAKI_CONTROLLER_BUTTON_BOX       , SDL_CONTROLLER_BUTTON_X);
+	result.insert(CHIAKI_CONTROLLER_BUTTON_PYRAMID   , SDL_CONTROLLER_BUTTON_Y);
+	result.insert(CHIAKI_CONTROLLER_BUTTON_DPAD_LEFT , SDL_CONTROLLER_BUTTON_DPAD_LEFT);
+	result.insert(CHIAKI_CONTROLLER_BUTTON_DPAD_RIGHT, SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
+	result.insert(CHIAKI_CONTROLLER_BUTTON_DPAD_UP   , SDL_CONTROLLER_BUTTON_DPAD_UP);
+	result.insert(CHIAKI_CONTROLLER_BUTTON_DPAD_DOWN , SDL_CONTROLLER_BUTTON_DPAD_DOWN);
+	result.insert(CHIAKI_CONTROLLER_BUTTON_L1        , SDL_CONTROLLER_BUTTON_LEFTSHOULDER);
+	result.insert(CHIAKI_CONTROLLER_BUTTON_R1        , SDL_CONTROLLER_BUTTON_RIGHTSHOULDER);
+	result.insert(CHIAKI_CONTROLLER_BUTTON_L3        , SDL_CONTROLLER_BUTTON_LEFTSTICK);
+	result.insert(CHIAKI_CONTROLLER_BUTTON_R3        , SDL_CONTROLLER_BUTTON_RIGHTSTICK);
+	result.insert(CHIAKI_CONTROLLER_BUTTON_OPTIONS   , SDL_CONTROLLER_BUTTON_START);
+	result.insert(CHIAKI_CONTROLLER_BUTTON_TOUCHPAD  , SDL_CONTROLLER_BUTTON_BACK);
+	result.insert(CHIAKI_CONTROLLER_BUTTON_PS        , SDL_CONTROLLER_BUTTON_GUIDE);
+#endif
+
+	// Then fill in from settings
+	auto chiaki_buttons = result.keys();
+	for(auto chiaki_button : chiaki_buttons)
+	{
+		auto button_name = GetChiakiControllerButtonName(chiaki_button).replace(' ', '_').toLower();
+		if(settings.contains("controllerbuttonmap/" + button_name))
+			result[chiaki_button] = settings.value("controllerbuttonmap/" + button_name).toInt();
+	}
+
 	return result;
 }

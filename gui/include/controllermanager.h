@@ -19,6 +19,7 @@
 #define PS_TOUCHPAD_MAX_Y 1079
 
 class Controller;
+class Settings;
 
 class ControllerManager : public QObject
 {
@@ -31,6 +32,7 @@ class ControllerManager : public QObject
 		QSet<SDL_JoystickID> available_controllers;
 #endif
 		QMap<int, Controller *> open_controllers;
+		Settings *settings = nullptr;
 
 		void ControllerClosed(Controller *controller);
 
@@ -50,6 +52,12 @@ class ControllerManager : public QObject
 		QSet<int> GetAvailableControllers();
 		Controller *OpenController(int device_id);
 
+		// Settings must be provided once at startup (see main.cpp) so that
+		// Controller instances can look up the user's real-gamepad button
+		// mapping.
+		void SetSettings(Settings *s) { settings = s; }
+		Settings *GetSettings() { return settings; }
+
 	signals:
 		void AvailableControllersUpdated();
 };
@@ -67,6 +75,10 @@ class Controller : public QObject
 		void UpdateState(SDL_Event event);
 		bool HandleButtonEvent(SDL_ControllerButtonEvent event);
 		bool HandleAxisEvent(SDL_ControllerAxisEvent event);
+		// Applies a button_mapping target (a ChiakiControllerButton bit, or
+		// one of the ANALOG_BUTTON_L2/R2 constants) to `state`, whether it
+		// came from a real button event or a trigger-as-digital-button axis.
+		void ApplyMappedButton(int chiaki_target, bool pressed);
 #if SDL_VERSION_ATLEAST(2, 0, 14)
 		bool HandleSensorEvent(SDL_ControllerSensorEvent event);
 		bool HandleTouchpadEvent(SDL_ControllerTouchpadEvent event);
@@ -82,6 +94,13 @@ class Controller : public QObject
 #ifdef CHIAKI_GUI_ENABLE_SDL_GAMECONTROLLER
 		QMap<QPair<Sint64, Sint64>, uint8_t> touch_ids;
 		SDL_GameController *controller;
+		// source (SDL_GameControllerButton, or Settings::kTriggerLeftSource/
+		// kTriggerRightSource for the two physical triggers) -> chiaki_button
+		// (ChiakiControllerButton or ChiakiControllerAnalogButton), loaded once
+		// at construction from Settings::GetControllerButtonMapping(). The
+		// stick axes are not in here -- they're handled unconditionally in
+		// HandleAxisEvent.
+		QMap<int, int> button_mapping;
 #endif
 
 	public:

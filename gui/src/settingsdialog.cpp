@@ -2,7 +2,6 @@
 
 #include <settingsdialog.h>
 #include <settings.h>
-#include <settingskeycapturedialog.h>
 #include <registdialog.h>
 #include <sessionlog.h>
 #include <screengeometry.h>
@@ -50,10 +49,11 @@ SettingsDialog::SettingsDialog(Settings *settings, QWidget *parent) : QDialog(pa
 	// The original desktop layout puts two tall columns next to each other.  Its
 	// minimum size is larger than small handheld screens, and eglfs clips the
 	// parts outside the framebuffer.  Keep the dialog inside the screen and make
-	// all settings reachable by scrolling instead.
+	// all settings reachable by scrolling instead, in whichever direction the
+	// content still overflows after trying to keep it compact.
 	auto scroll_area = new QScrollArea(this);
 	scroll_area->setWidgetResizable(true);
-	scroll_area->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	scroll_area->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 	root_layout->addWidget(scroll_area);
 
 	auto scroll_content = new QWidget(scroll_area);
@@ -284,8 +284,8 @@ SettingsDialog::SettingsDialog(Settings *settings, QWidget *parent) : QDialog(pa
 
 	registered_hosts_buttons_layout->addStretch();
 
-	// Key Settings
-	auto key_settings_group_box = new QGroupBox(tr("Key Settings"));
+	// Controller Button Mapping
+	auto key_settings_group_box = new QGroupBox(tr("Controller Button Mapping"));
 	right_layout->addWidget(key_settings_group_box);
 	auto key_horizontal = new QHBoxLayout();
 	key_settings_group_box->setLayout(key_horizontal);
@@ -296,25 +296,23 @@ SettingsDialog::SettingsDialog(Settings *settings, QWidget *parent) : QDialog(pa
 	key_horizontal->addLayout(key_left_form);
 	key_horizontal->addLayout(key_right_form);
 
-	QMap<int, Qt::Key> key_map = this->settings->GetControllerMapping();
+	QMap<int, int> button_map = this->settings->GetControllerButtonMapping();
+	QList<int> remappable_sdl_buttons = Settings::GetRemappableSDLButtons();
 
 	int i = 0;
-	for(auto it = key_map.begin(); it != key_map.end(); ++it, ++i)
+	for(auto it = button_map.begin(); it != button_map.end(); ++it, ++i)
 	{
 		int chiaki_button = it.key();
-		auto button = new QPushButton(QKeySequence(it.value()).toString(), this);
-		button->setAutoDefault(false);
+		auto combo_box = new QComboBox(this);
+		for(int sdl_button : remappable_sdl_buttons)
+			combo_box->addItem(Settings::GetSDLButtonName(sdl_button), sdl_button);
+		int current_index = combo_box->findData(it.value());
+		if(current_index >= 0)
+			combo_box->setCurrentIndex(current_index);
 		auto form = i % 2 ? key_left_form : key_right_form;
-		form->addRow(Settings::GetChiakiControllerButtonName(chiaki_button), button);
-		// Launch key capture dialog on clicked event
-		connect(button, &QPushButton::clicked, this, [this, chiaki_button, button](){
-			auto dialog = new SettingsKeyCaptureDialog(this);
-			// Store captured key to settings and change button label on KeyCaptured event
-			connect(dialog, &SettingsKeyCaptureDialog::KeyCaptured, button, [this, button, chiaki_button](Qt::Key key){
-						button->setText(QKeySequence(key).toString());
-						this->settings->SetControllerButtonMapping(chiaki_button, key);
-					});
-			dialog->exec();
+		form->addRow(Settings::GetChiakiControllerButtonName(chiaki_button), combo_box);
+		connect(combo_box, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this, chiaki_button, combo_box](int index){
+			this->settings->SetControllerButtonMapping(chiaki_button, combo_box->itemData(index).toInt());
 		});
 	}
 
