@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.3.0
+
+- Made the Controller Button Mapping settings actually remap the real gamepad; the previous "Key Settings" list only drove an unused keyboard-as-controller fallback and had no effect on real streaming input.
+- Added L2/R2 to the remappable list, freely interchangeable with any other button (this handheld's triggers are plain digital switches under the hood, so there's no analog fidelity to protect).
+- Replaced the settings dialog's press-to-capture flow, which could only work during an active stream, with a per-button dropdown that works anywhere in the app.
+- Grouped L1/L2/L3 and R1/R2/R3 into consistent columns, shortened labels, and added a horizontal-scroll fallback so the dialog fits small screens.
+
 ## v0.2.0
 
 - Added original Retro Chiaki artwork and a 320×240 muOS/PortMaster preview.
