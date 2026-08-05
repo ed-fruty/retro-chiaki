@@ -299,22 +299,33 @@ SettingsDialog::SettingsDialog(Settings *settings, QWidget *parent) : QDialog(pa
 	QMap<int, int> button_map = this->settings->GetControllerButtonMapping();
 	QList<int> remappable_sdl_buttons = Settings::GetRemappableSDLButtons();
 
-	int i = 0;
-	for(auto it = button_map.begin(); it != button_map.end(); ++it, ++i)
-	{
-		int chiaki_button = it.key();
+	auto add_button_row = [this, &button_map, &remappable_sdl_buttons](QFormLayout *form, int chiaki_button){
 		auto combo_box = new QComboBox(this);
-		for(int sdl_button : remappable_sdl_buttons)
-			combo_box->addItem(Settings::GetSDLButtonName(sdl_button), sdl_button);
-		int current_index = combo_box->findData(it.value());
+		for(int source : remappable_sdl_buttons)
+			combo_box->addItem(Settings::GetSDLButtonName(source), source);
+		int current_index = combo_box->findData(button_map.value(chiaki_button));
 		if(current_index >= 0)
 			combo_box->setCurrentIndex(current_index);
-		auto form = i % 2 ? key_left_form : key_right_form;
 		form->addRow(Settings::GetChiakiControllerButtonName(chiaki_button), combo_box);
 		connect(combo_box, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this, chiaki_button, combo_box](int index){
 			this->settings->SetControllerButtonMapping(chiaki_button, combo_box->itemData(index).toInt());
 		});
-	}
+	};
+
+	// Grouped by physical side of the controller (rather than alternating by
+	// iteration order) so L1/L2/L3 always land in the same column as each
+	// other, and likewise for R1/R2/R3.
+	for(int chiaki_button : { (int)CHIAKI_CONTROLLER_BUTTON_DPAD_LEFT, (int)CHIAKI_CONTROLLER_BUTTON_DPAD_RIGHT,
+			(int)CHIAKI_CONTROLLER_BUTTON_DPAD_UP, (int)CHIAKI_CONTROLLER_BUTTON_DPAD_DOWN,
+			(int)CHIAKI_CONTROLLER_BUTTON_L1, (int)CHIAKI_CONTROLLER_ANALOG_BUTTON_L2, (int)CHIAKI_CONTROLLER_BUTTON_L3,
+			(int)CHIAKI_CONTROLLER_BUTTON_TOUCHPAD })
+		add_button_row(key_left_form, chiaki_button);
+
+	for(int chiaki_button : { (int)CHIAKI_CONTROLLER_BUTTON_CROSS, (int)CHIAKI_CONTROLLER_BUTTON_MOON,
+			(int)CHIAKI_CONTROLLER_BUTTON_BOX, (int)CHIAKI_CONTROLLER_BUTTON_PYRAMID,
+			(int)CHIAKI_CONTROLLER_BUTTON_R1, (int)CHIAKI_CONTROLLER_ANALOG_BUTTON_R2, (int)CHIAKI_CONTROLLER_BUTTON_R3,
+			(int)CHIAKI_CONTROLLER_BUTTON_OPTIONS, (int)CHIAKI_CONTROLLER_BUTTON_PS })
+		add_button_row(key_right_form, chiaki_button);
 
 	// Close Button
 	auto button_box = new QDialogButtonBox(QDialogButtonBox::Close, this);
