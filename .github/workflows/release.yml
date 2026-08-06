@@ -3,6 +3,11 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag to build against (e.g. v0.3.0). Does not push a tag or publish a release -- use this to validate the build/package steps only.'
+        required: true
 
 permissions:
   contents: write
@@ -58,7 +63,17 @@ jobs:
       - name: Build and package release
         run: |
           chmod +x packaging/build/ci-package.sh
-          packaging/build/ci-package.sh "${{ github.ref_name }}"
+          packaging/build/ci-package.sh "${{ inputs.version || github.ref_name }}"
+
+      # The workflow_dispatch case has no tag to attach a release to, so
+      # upload the zip as a normal build artifact instead -- otherwise a
+      # manual test run's output would just be discarded with the runner.
+      - name: Upload build artifact (workflow_dispatch test runs)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: retro-chiaki-${{ inputs.version }}
+          path: dist/*.zip
 
       - name: Generate changelog
         id: git_cliff
@@ -71,7 +86,11 @@ jobs:
           GITHUB_REPO: ${{ github.repository }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # Skipped for a manual workflow_dispatch test run: there's no pushed
+      # tag to attach a release to in that case, and the build/package steps
+      # above are already what such a run is meant to validate.
       - name: Create GitHub Release
+        if: github.event_name == 'push'
         uses: softprops/action-gh-release@v3
         with:
           name: Retro Chiaki ${{ github.ref_name }}
