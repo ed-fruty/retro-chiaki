@@ -1,0 +1,84 @@
+name: Build Release
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Enable arm64 architecture
+        run: sudo dpkg --add-architecture arm64
+
+      - name: Install cross-compilation toolchain and dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            gcc-aarch64-linux-gnu \
+            g++-aarch64-linux-gnu \
+            cmake \
+            ninja-build \
+            pkg-config \
+            python3 \
+            git \
+            zip \
+            xkb-data \
+            protobuf-compiler \
+            libssl-dev:arm64 \
+            libopus-dev:arm64 \
+            libavcodec-dev:arm64 \
+            libavformat-dev:arm64 \
+            libavutil-dev:arm64 \
+            libswscale-dev:arm64 \
+            libswresample-dev:arm64 \
+            libsdl2-dev:arm64 \
+            libasound2-dev:arm64 \
+            libpulse-dev:arm64 \
+            libevdev-dev:arm64 \
+            libudev-dev:arm64 \
+            qtbase5-dev:arm64 \
+            qttools5-dev:arm64 \
+            libqt5svg5-dev:arm64 \
+            qtmultimedia5-dev:arm64 \
+            libqt5opengl5-dev:arm64 \
+            qtbase5-dev \
+            qttools5-dev \
+            python3-pip
+          pip3 install protobuf grpcio-tools
+
+      - name: Build and package release
+        run: |
+          chmod +x packaging/build/ci-package.sh
+          packaging/build/ci-package.sh "${{ github.ref_name }}"
+
+      - name: Generate changelog
+        id: git_cliff
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml
+          args: --latest --strip header
+        env:
+          OUTPUT: CHANGELOG.md
+          GITHUB_REPO: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          name: Retro Chiaki ${{ github.ref_name }}
+          body: ${{ steps.git_cliff.outputs.content }}
+          draft: false
+          prerelease: false
+          make_latest: true
+          fail_on_unmatched_files: true
+          files: |
+            dist/*.zip

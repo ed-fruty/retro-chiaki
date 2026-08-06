@@ -27,6 +27,13 @@ cd "$GAMEDIR"
 export LD_LIBRARY_PATH="$GAMEDIR/libs:$LD_LIBRARY_PATH"
 export LD_PRELOAD="$GAMEDIR/libs/libmaliegl.so"
 export QT_PLUGIN_PATH="$GAMEDIR/libs/qt5/plugins"
+
+# Point libGL.so.1 (as looked up in libs/ via LD_LIBRARY_PATH) at this
+# device's own Mali GLESv2 driver instead of bundling a static copy in the
+# release: a baked-in copy can't be produced by CI (it's a proprietary
+# vendor blob, not available from any package or in this repo) and may not
+# match every H700 unit's driver build anyway. Safe to always (re)create.
+ln -sf /usr/lib/libGLESv2.so.2 "$GAMEDIR/libs/libGL.so.1" 2>/dev/null
 export XKB_CONFIG_ROOT="$GAMEDIR/xkb"
 export QT_XKB_CONFIG_ROOT="$GAMEDIR/xkb"
 export QT_QPA_PLATFORM=eglfs

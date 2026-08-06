@@ -2,6 +2,8 @@
 *.swp
 .idea
 build
+!/packaging/build
+/dist
 cmake-build-*
 /build_*
 /build-*
