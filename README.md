@@ -109,7 +109,7 @@ Console registration can be completed without a physical keyboard. Select an **E
 
 ## Installation
 
-1. Download `retro-chiaki-v0.3.0-portmaster-muos-h700.zip` from [Releases](https://github.com/ed-fruty/retro-chiaki/releases/latest).
+1. Download `retro-chiaki-v0.3.1-portmaster-muos-h700.zip` from [Releases](https://github.com/ed-fruty/retro-chiaki/releases/latest).
 2. Extract the archive to the root of the SD card that contains your muOS `ROMS` and `ports` directories. Do not extract it inside either directory.
 3. Confirm that these paths exist:
    - `ports/chiaki/chiaki`
@@ -134,7 +134,7 @@ Retro Chiaki uses the compatible SDL2, FFmpeg, OpenSSL, Opus, evdev/udev and aud
 
 ## Roadmap
 
-- A separate native muOS Application package is planned. The launcher prototype and artwork are already kept in the repository, but no Application download is included in v0.3.0.
+- A separate native muOS Application package is planned. The launcher prototype and artwork are already kept in the repository, but no Application download is included in v0.3.1.
 - KNULLI packaging and testing are planned; current releases target muOS.
 - Reports from additional 720×480 and 640×480 H700 devices will be used to expand the verified compatibility list.
 

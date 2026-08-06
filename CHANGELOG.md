@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.3.1
+
+- Chiaki.sh now symlinks the device's own Mali GLES driver into place at launch, instead of relying on a static copy bundled at build time. More portable across H700 units with different driver builds, and no longer a blocker for reproducing a release from source.
+- Added automated release CI: pushing a version tag now cross-compiles, packages and publishes the release automatically.
+
 ## v0.3.0
 
 - Made the Controller Button Mapping settings actually remap the real gamepad; the previous "Key Settings" list only drove an unused keyboard-as-controller fallback and had no effect on real streaming input.

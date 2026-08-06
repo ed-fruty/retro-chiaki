@@ -2,7 +2,7 @@
 
 ## Install the release
 
-Download `retro-chiaki-v0.3.0-portmaster-muos-h700.zip` and extract it to the root of the SD card that contains the `ROMS` and `ports` directories. Do not extract it inside `ROMS`, `ROMS/Ports` or `ports`; the archive already contains the complete directory layout.
+Download `retro-chiaki-v0.3.1-portmaster-muos-h700.zip` and extract it to the root of the SD card that contains the `ROMS` and `ports` directories. Do not extract it inside `ROMS`, `ROMS/Ports` or `ports`; the archive already contains the complete directory layout.
 
 After extraction, verify these relative paths on that card:
 
@@ -40,7 +40,7 @@ This package is designed for compatible Allwinner H700 handhelds and detects 720
 
 ## Planned Applications package
 
-A separate native muOS Applications package is planned, but is not distributed with v0.3.0. For this release, start Retro Chiaki from **Ports → Chiaki**. Do not expect a `MUOS/application/Retro Chiaki` directory in the v0.3.0 archive.
+A separate native muOS Applications package is planned, but is not distributed with v0.3.1. For this release, start Retro Chiaki from **Ports → Chiaki**. Do not expect a `MUOS/application/Retro Chiaki` directory in the v0.3.1 archive.
 
 ## PortMaster and system dependencies
 
