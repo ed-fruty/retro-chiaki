@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.3.2
+
+- Fixed all pre-stream button/click input (A=click, Select+Start=exit, everything except in-stream Remote Play) being broken in v0.3.1. Root cause: the release package bundled its own build environment's `libevdev.so.2` and `libudev.so.1`, and `LD_LIBRARY_PATH` made the app prefer those over the device's own matching copies -- silently breaking gptokeyb's virtual-input handling while leaving Qt/EGL/graphics working normally. Both libraries are now excluded from the bundle, same as glibc, so they always resolve to the device's own copies.
+
 ## v0.3.1
 
 - Chiaki.sh now symlinks the device's own Mali GLES driver into place at launch, instead of relying on a static copy bundled at build time. More portable across H700 units with different driver builds, and no longer a blocker for reproducing a release from source.

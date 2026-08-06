@@ -104,6 +104,15 @@ echo "=== Resolving runtime library dependencies ==="
 #     device's -- breaking any other system library (e.g. muOS's own
 #     libsndfile.so.1) that needs a GLIBC_2.36+ symbol version. Always let
 #     these resolve to the device's own copy.
+#   - libevdev.so.2 / libudev.so.1: read the device's own evdev/uinput nodes
+#     (including the virtual pointer gptokeyb creates for the connect UI's
+#     mouse-click navigation), so they need to match muOS's own kernel/udev
+#     setup, not this build environment's. Confirmed by direct A/B testing on
+#     device: bundling this build's copies (which LD_LIBRARY_PATH makes take
+#     priority over the device's) silently breaks all pre-stream button/click
+#     input, since Qt's eglfs input handling loads successfully either way
+#     but the bundled copies don't work with this device's uinput/evdev
+#     nodes. The device has its own compatible copies at /usr/lib and /lib.
 DO_NOT_BUNDLE=(
     libpulse.so.0
     libc.so.6
@@ -115,6 +124,8 @@ DO_NOT_BUNDLE=(
     libnsl.so.1
     libutil.so.1
     libanl.so.1
+    libevdev.so.2
+    libudev.so.1
 )
 
 # Recursively follows each binary's ELF NEEDED entries against the aarch64
