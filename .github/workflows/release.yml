@@ -21,8 +21,20 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
+      # GitHub's ubuntu-22.04 runner is amd64; the default Ubuntu mirrors only
+      # carry amd64/i386 packages. arm64 packages live on the separate ports
+      # mirror, so it needs to be added explicitly, and the existing default
+      # sources restricted to amd64 so apt doesn't also try (and fail) to
+      # fetch nonexistent arm64 indices from them.
       - name: Enable arm64 architecture
-        run: sudo dpkg --add-architecture arm64
+        run: |
+          sudo dpkg --add-architecture arm64
+          sudo sed -i 's/^deb /deb [arch=amd64] /' /etc/apt/sources.list
+          sudo tee /etc/apt/sources.list.d/arm64-ports.list > /dev/null << 'EOF'
+          deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports jammy main restricted universe multiverse
+          deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports jammy-updates main restricted universe multiverse
+          deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports jammy-security main restricted universe multiverse
+          EOF
 
       - name: Install cross-compilation toolchain and dependencies
         run: |
